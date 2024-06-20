@@ -77,4 +77,5 @@ if __name__ == '__main__':
     processor = EmbeddingProcessor()
     datasets_dir = args.dataset_dir
     datasets_list = [os.path.join(datasets_dir,i) for i in os.listdir(datasets_dir)]
+    processor.get_seqs_from_datasets(datasets_list)
     processor.generate_embeddings('./datasets/esm_embeddings/all', mode='all', fname=args.fname)
