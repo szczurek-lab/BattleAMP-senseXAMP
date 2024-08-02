@@ -7,5 +7,6 @@ python -c "import gdown; gdown.download_folder(url=\
 output='weights')"
 
 mkdir -p datasets/ori_datasets
+mkdir -p datasets/stc_datasets
 mkdir -p datasets/esm_embeddings
 mkdir -p datasets/stc_info
