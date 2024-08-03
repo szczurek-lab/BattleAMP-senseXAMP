@@ -60,7 +60,7 @@ data = dict(
         # batch_per_gpu=1
     ),
     test=dict(
-        datafile=os.path.join(data_root,json_data["datafilename"]),
+        datafile=json_data["data_fpath"],
         embeddings_fpath=json_data['embedding_fpath'],
         stc_fpath=json_data["stc_fpath"],
         batch_per_gpu=16

@@ -5,7 +5,7 @@ dirpath=${inputpath%/*}
 rawname=${filename%%.*}
 
 JSON=$(jq -n \
-  --arg datafilename "$filename" \
+  --arg data_fpath "$inputpath" \
   --arg embedding_fpath "datasets/esm_embeddings/all/$rawname.h5" \
   --arg stc_fpath "datasets/stc_info/$rawname.h5" \
   '$ARGS.named'
