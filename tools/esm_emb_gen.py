@@ -29,6 +29,7 @@ class EmbeddingProcessor:
         """
         for file in datasets_list:
             df = pd.read_csv(file)
+            print(df)
             self.all_seqs.extend(df['Sequence'].values)
         self.all_seqs = set(self.all_seqs)
 
@@ -71,11 +72,14 @@ class EmbeddingProcessor:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='A script to calculate esm_embeddings version of datasets')
-    parser.add_argument('--dataset_dir', default='./datasets/ori_datasets/AMPlify', help='path to ori_dataset')
-    parser.add_argument('--fname', default='AMPlify.h5', help='name of output file name, name it xxx.h5')
+    parser.add_argument('--dataset_path', default='./datasets/dummy.csv', help='path to raw csv dataset')
     args = parser.parse_args()
     processor = EmbeddingProcessor()
-    datasets_dir = args.dataset_dir
-    datasets_list = [os.path.join(datasets_dir,i) for i in os.listdir(datasets_dir)]
+    dataset_path = args.dataset_path
+    dataset_name = os.path.split(dataset_path)[-1]
+    embedding_name = f"{os.path.splitext(dataset_name)[0]}.h5"
+    print(embedding_name)
+    datasets_list = [dataset_path]
     processor.get_seqs_from_datasets(datasets_list)
-    processor.generate_embeddings('./datasets/esm_embeddings/all', mode='all', fname=args.fname)
+    processor.generate_embeddings('./datasets/esm_embeddings/all', mode='all', fname=embedding_name)
+    print("generated esm embeddings")

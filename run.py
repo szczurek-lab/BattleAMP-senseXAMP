@@ -50,7 +50,9 @@ if __name__ == '__main__':
     cfg.local_rank = args.local_rank
     # create logger and work_dir
     if dist.get_rank() == 0:
-        cfg.work_dir = os.path.join(cfg.work_dir, cfg.benchmark_name, cfg.dataset_name, args.mode,
+        cfg.work_dir = os.path.join(
+            cfg.work_dir,
+            # cfg.benchmark_name, cfg.dataset_name, args.mode,
                                     time.strftime("%Y-%m-%d_%H:%M:%S", time.localtime()))
         os.makedirs(cfg.work_dir, exist_ok=True)
     logger = Logger(cfg.work_dir)

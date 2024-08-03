@@ -1,7 +1,22 @@
-python tools/esm_emb_gen.py --dataset_dir datasets/ori_datasets/custom/ --fname custom.h5
+inputpath=${1}
+outputpath=${2}
+filename=${inputpath##*/}
+dirpath=${inputpath%/*}
+rawname=${filename%%.*}
 
-python tools/generate_stc_csv.py --data_dir datasets/ori_datasets/custom/ --out_dir datasets/stc_datasets/custom
+JSON=$(jq -n \
+  --arg datafilename "$filename" \
+  --arg embedding_fpath "datasets/esm_embeddings/all/$rawname.h5" \
+  --arg stc_fpath "datasets/stc_info/$rawname.h5" \
+  '$ARGS.named'
+)
 
-python tools/stc_gen.py --dataset_dir datasets/stc_datasets/custom/ --datafile dummy.csv --fname custom.h5
+echo "$JSON" > "configs/cls_task/custom.json"
 
-python -m torch.distributed.launch run.py --config configs/cls_task/custom_SenseXAMP.py --mode inference --output_path resutls.tsv
+python tools/esm_emb_gen.py --dataset_path "$inputpath" &&
+
+python tools/generate_stc_csv.py --inputpath "$inputpath" --outputpath "datasets/stc_datasets/$filename" &&
+
+python tools/stc_gen.py --dataset_dir "datasets/stc_datasets/" --datafile "$filename" --fname "$rawname.h5" &&
+
+python -m torch.distributed.launch run.py --config configs/cls_task/custom_SenseXAMP.py --mode inference --output_path "$outputpath"

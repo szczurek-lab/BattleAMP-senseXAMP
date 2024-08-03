@@ -1,11 +1,14 @@
 import os
+import json
 
+with open("configs/cls_task/custom.json") as fp:
+    json_data = json.load(fp)
 # Task of the model
 # Including 'amp_cls', 'amp_multilabel_cls', 'amp_ranking', and 'amp_regression',default 'amp_cls'
 benchmark_name = 'amp_cls'
-dataset_name = 'custom'
+# dataset_name = 'custom'
 work_dir = 'experiments'
-# Training hyper-params settings
+# # Training hyper-params settings
 epochs = 80
 lr = 1e-5
 eps = 1e-8
@@ -57,13 +60,13 @@ data = dict(
         # batch_per_gpu=1
     ),
     test=dict(
-        datafile=os.path.join(data_root,'dummy.csv'),
-        embeddings_fpath='./datasets/esm_embeddings/all/custom.h5',
-        stc_fpath='./datasets/stc_info/custom.h5',
+        datafile=os.path.join(data_root,json_data["datafilename"]),
+        embeddings_fpath=json_data['embedding_fpath'],
+        stc_fpath=json_data["stc_fpath"],
         batch_per_gpu=16
     ),
 )
-# Resume & Checkpoint setting
-Resume = None # Resume from which ckpt to train
+# # Resume & Checkpoint setting
+# Resume = None # Resume from which ckpt to train
 ckpt_path = "weights/amp_cls/sensexamp_cls_balanced.ckpt"
 
