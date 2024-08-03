@@ -1,0 +1,3 @@
+[submodule "experiments_tools"]
+	path = experiments_tools
+	url = git@github.com:szczurek-lab/AMP-data.git
