@@ -254,10 +254,14 @@ class Runner(BaseRunner):
         self.model.eval()
         self.cur_dataloader = self.test_dataloader
         time.sleep(2)  # Prevent possible deadlock during epoch transition
-        all_probabilities, all_preds = [], []
+        all_probabilities, all_preds, all_seqs = [], [], []
         for i, data_batch in tqdm(enumerate(self.cur_dataloader)):
             self._inner_iter = i
             probabilities, preds = self.run_iter(data_batch, train_mode=False)
             all_probabilities += probabilities.tolist()
             all_preds += ["AMP" if x else "non-AMP" for x in preds.tolist()]
-        pd.DataFrame({"Prediction": all_preds, "Probability_score": all_probabilities}).to_csv(output_path, sep="\t")
+            all_seqs += list(data_batch["seq"])
+        pd.DataFrame(
+            {"Prediction": all_preds, "Probability_score": all_probabilities,
+             "Sequence": all_seqs}
+        ).to_csv(output_path, sep="\t", index=False)
