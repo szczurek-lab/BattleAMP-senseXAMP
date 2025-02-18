@@ -33,6 +33,8 @@ if __name__ == "__main__":
 						help="Path to the input FASTA file.", required=True)
 	parser.add_argument("--csv_file", dest="csv_file", type=str,
 						help="Path to the output csv file.", required=True)
+	parser.add_argument("--mode", dest="mode", type=str, choices=["cls", "reg"],
+						help="Inference mode.", required=True)
 
 	args = parser.parse_args()
-	convert_inputs(args.fasta_file, args.csv_file)
+	convert_inputs(args.fasta_file, args.csv_file, args.mode)

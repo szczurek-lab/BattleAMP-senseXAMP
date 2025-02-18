@@ -1,5 +1,6 @@
 import argparse
 import pandas as pd
+from typing import Literal
 
 
 def convert_outputs(input_file: str, output_file: str,
@@ -52,6 +53,8 @@ if __name__ == "__main__":
 						help="Path to the input FASTA file.", required=True)
 	parser.add_argument("-o", "--output_file", dest="output_file", type=str,
 						help="Path to the output tsv file.", required=True)
+	parser.add_argument("--mode", dest="mode", type=str, choices=["cls", "reg"],
+						help="Inference mode.", required=True)
 
 	args = parser.parse_args()
-	convert_outputs(args.input_file, args.output_file)
+	convert_outputs(args.input_file, args.output_file, args.mode)
