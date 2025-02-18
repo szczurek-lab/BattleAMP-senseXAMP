@@ -23,6 +23,9 @@ def parse_args():
     # for ddp
     parser.add_argument('--local_rank', type=int, default=0)
     parser.add_argument('--seed', type=int, default=42, help='random seed')
+    parser.add_argument('--task', required=False, default=None,
+                        help='Benchmark inference task (cls or reg), '
+                            'required only when using "inference" mode')
     args = parser.parse_args()
     return args
 
@@ -69,7 +72,7 @@ if __name__ == '__main__':
     elif args.mode == 'test':
         runner.test()
     elif args.mode == 'inference':
-        runner.inference(args.output_path)
+        runner.inference(args.output_path, args.task)
     else:
         if args.local_rank == 0:
             print("Please ensure args.mode to be train or test")

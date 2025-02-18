@@ -4,7 +4,7 @@ from typing import Literal
 
 
 def convert_outputs(input_file: str, output_file: str,
-					mode: Literal["cls", "reg"]):
+					task: Literal["cls", "reg"]):
 	"""Add sequence id to the inference output file."""
 	print("Converting outputs")
 	with open(input_file, "r") as file:
@@ -22,12 +22,12 @@ def convert_outputs(input_file: str, output_file: str,
 	output_df["Sequence_id"] = output_df.apply(
 		lambda row: sequence_to_id[row["Sequence"]], axis=1
 	)
-	if mode == "cls":
+	if task == "cls":
 		output_df = output_df[
 			["Sequence_id", "Sequence", "Probability_score", "Prediction"]
 		]
 
-	elif mode == "reg":
+	elif task == "reg":
 		output_df["MIC_unit"] = "uM"
 		output_df.rename(columns={"MIC": "Log10_MIC"}, inplace=True)
 		output_df["MIC"] = output_df.apply(
@@ -38,7 +38,7 @@ def convert_outputs(input_file: str, output_file: str,
 		]
 
 	else:
-		raise ValueError("Unrecognized inference mode, "
+		raise ValueError("Unrecognized inference task, "
 						 "please choose one from (cls, reg)")
 
 	output_df.to_csv(output_file, sep="\t", index=False)
@@ -53,8 +53,8 @@ if __name__ == "__main__":
 						help="Path to the input FASTA file.", required=True)
 	parser.add_argument("-o", "--output_file", dest="output_file", type=str,
 						help="Path to the output tsv file.", required=True)
-	parser.add_argument("--mode", dest="mode", type=str, choices=["cls", "reg"],
-						help="Inference mode.", required=True)
+	parser.add_argument("--task", dest="task", type=str, choices=["cls", "reg"],
+						help="Benchmark inference task.", required=True)
 
 	args = parser.parse_args()
-	convert_outputs(args.input_file, args.output_file, args.mode)
+	convert_outputs(args.input_file, args.output_file, args.task)

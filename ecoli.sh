@@ -12,16 +12,16 @@ JSON=$(jq -n \
   '$ARGS.named'
 )
 
-echo "$JSON" > "configs/cls_task/custom.json"
+echo "$JSON" > "configs/reg_task/custom.json"
 
-python tools/convert_inputs.py --fasta_file "$input_fasta" --csv_file "$inputpath" --task "cls" &&
+python tools/convert_inputs.py --fasta_file "$input_fasta" --csv_file "$inputpath" --task "reg" &&
 
 python tools/esm_emb_gen.py --dataset_path "$inputpath" &&
 
-python tools/generate_stc_csv.py --inputpath "$inputpath" --outputpath "datasets/stc_datasets/$filename" --task "cls" &&
+python tools/generate_stc_csv.py --inputpath "$inputpath" --outputpath "datasets/stc_datasets/$filename" --task "reg" &&
 
 python tools/stc_gen.py --dataset_dir "datasets/stc_datasets/" --datafile "$filename" --fname "$rawname.h5" &&
 
-python -m torch.distributed.launch run.py --config configs/cls_task/custom_SenseXAMP.py --mode inference --task "cls" --output_path "$outputpath" &&
+python -m torch.distributed.launch run.py --config configs/reg_task/ecoli_SenseXAMP.py --mode inference --task "reg" --output_path "$outputpath" &&
 
-python tools/convert_outputs.py --input_file "$input_fasta" --output_file "$outputpath" --task "cls"
+python tools/convert_outputs.py --input_file "$input_fasta" --output_file "$outputpath" --task "reg"

@@ -4,20 +4,20 @@ from typing import Literal
 
 
 def convert_inputs(fasta_file: str, csv_file: str,
-				   mode: Literal["cls", "reg"]) -> None:
-	"""Convert inputs from fasta to csv format required by SenseXAMP model."""
+				   task: Literal["cls", "reg"]) -> None:
+	"""Convert inputs from fasta to csv format required by SenseXAMP taskl."""
 	print("Converting inputs")
 	with open(fasta_file, "r") as file:
 		lines = file.readlines()
 	seqs = [x.strip() for x in lines[1::2]]
 
 	target = [None] * len(seqs)
-	if mode == "cls":
+	if task == "cls":
 		data = {"Sequence": seqs, "Labels": target}
-	elif mode == "reg":
-		data = {"Sequence": seqs, "MIC": target}
+	elif task == "reg":
+		data = {"Sequence": seqs, "MIC": target, "Labels": target}
 	else:
-		raise ValueError("Unrecognized inference mode, "
+		raise ValueError("Unrecognized inference task, "
 						 "please choose one from (cls, reg)")
 
 	pd.DataFrame(data).to_csv(csv_file, index=False)
@@ -33,8 +33,8 @@ if __name__ == "__main__":
 						help="Path to the input FASTA file.", required=True)
 	parser.add_argument("--csv_file", dest="csv_file", type=str,
 						help="Path to the output csv file.", required=True)
-	parser.add_argument("--mode", dest="mode", type=str, choices=["cls", "reg"],
-						help="Inference mode.", required=True)
+	parser.add_argument("--task", dest="task", type=str, choices=["cls", "reg"],
+						help="Benchmark inference task.", required=True)
 
 	args = parser.parse_args()
-	convert_inputs(args.fasta_file, args.csv_file, args.mode)
+	convert_inputs(args.fasta_file, args.csv_file, args.task)
