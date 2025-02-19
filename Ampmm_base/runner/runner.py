@@ -253,10 +253,14 @@ class Runner(BaseRunner):
             raise ValueError("Unrecognized inference task, "
                              "please choose one from (cls, reg)")
 
+        self.register_test_hooks()
         if self.local_rank == 0:
-            self.logger.info('Start running,workdir:{}'.format(self.cfg.work_dir))
+            self.logger.info("Start running,workdir:{}".format(self.cfg.work_dir))
         self.model.eval()
         self.cur_dataloader = self.test_dataloader
+        # Load model checkpoint.
+        self.call_hook("before_val_epoch")
+
         time.sleep(2)  # Prevent possible deadlock during epoch transition
         all_probs, all_preds, all_seqs = [], [], []
         for i, data_batch in tqdm(enumerate(self.cur_dataloader)):
@@ -271,7 +275,7 @@ class Runner(BaseRunner):
                 all_preds += ["AMP" if x else "non-AMP" for x in preds.tolist()]
 
             else:
-                all_preds += list(outputs["model_outputs"])
+                all_preds += outputs["model_outputs"].tolist()
 
         if task == "cls":
             results = {

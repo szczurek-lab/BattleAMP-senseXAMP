@@ -1,18 +1,18 @@
 import os
 import json
 
-with open("configs/cls_task/custom.json") as fp:
+with open("configs/reg_task/custom.json") as fp:
     json_data = json.load(fp)
 # Task of the model
 # Including 'amp_cls', 'amp_multilabel_cls', 'amp_ranking', and 'amp_regression',default 'amp_cls'
-benchmark_name = 'amp_cls'
-# dataset_name = 'custom'
+benchmark_name = 'amp_reg'
+# dataset_name = 'E.coli'
 work_dir = 'experiments'
-# # Training hyper-params settings
+# Training hyper-params settings
 epochs = 80
-lr = 1e-5
+lr = 1e-4
 eps = 1e-8
-batch_interval = 100 # every n batch output loss info
+batch_interval = 50 # every n batch output loss info
 optimizer = dict(type='Adam', lr=lr, eps=eps)
 optimizer_config = dict(
     grad_clip=dict(max_norm=1.0)
@@ -31,10 +31,9 @@ model = dict(
         dropout=0.2
     ),
     losses = dict(
-        Ensemble_BCELoss=dict(
+        Ensemble_MSELoss=dict(
             weight=1.0,
             kwargs=dict(
-                pos_weight=[1.0],
                 loss_weight=dict(
                     stc_pred=0.25,
                     slf_pred=0.25,
@@ -44,8 +43,7 @@ model = dict(
         )
     )
 )
-# Dataset settings
-data_root = './datasets/ori_datasets/custom'  # path to your original dataset
+data_root = './datasets/ori_datasets/regression_benchmark/E.coli' # path to your original dataset
 data = dict(
     train=dict(
         # datafile=os.path.join(data_root,'train.csv'),
@@ -66,7 +64,6 @@ data = dict(
         batch_per_gpu=16
     ),
 )
-# # Resume & Checkpoint setting
-# Resume = None # Resume from which ckpt to train
-ckpt_path = "weights/amp_cls/sensexamp_cls_balanced.ckpt"
-
+# Resume & Checkpoint setting
+Resume = None # Resume from which ckpt to train
+ckpt_path = "weights/amp_reg/sensexamp_reg_ecoli.ckpt" # Checkpoint for test
