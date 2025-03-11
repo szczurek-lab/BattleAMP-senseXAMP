@@ -22,6 +22,24 @@ conda activate torch1.7
 pip install -r requirements.txt
 ```
 
+BattleAMP benchmark
+---
+### Available models
+
+|        Model         | Inference model name |                                             Checkpoint                                             |
+|:--------------------:|----------------------|:--------------------------------------------------------------------------------------------------:|
+|      Classifier      | classification       | [sensexamp_cls_balanced](https://drive.google.com/drive/folders/1JKNH-3gUD2qVkhWiUqXNF1Ef-a4CPzvS) |
+|  Regression E. coli  | regression_ecoli     |  [sensexamp_reg_ecoli](https://drive.google.com/drive/folders/1QWrv0P2mo85AazilU7bzQrf8rWHM0lt-)   |
+| Regression S. aureus | regression_saureus   | [sensexamp_reg_saureus](https://drive.google.com/drive/folders/1QWrv0P2mo85AazilU7bzQrf8rWHM0lt-)  |
+
+### Usage
+1. Create conda environment. Refer to [installation](#Installation) section.
+2. Download model checkpoints to `weights` folder.
+3. Run `inference.sh` script using corresponding inference model name. Example for running classification:
+    ```shell
+    sh inference.sh input.fasta output.tsv classification
+    ```
+
 Quick Usage of SenseXAMP
 ---
 ## 1. Prepare datasets before using SenseXAMP

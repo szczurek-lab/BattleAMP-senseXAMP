@@ -1,6 +1,6 @@
 import os
 import os.path as osp
-from typing import Tuple
+from typing import Literal, Tuple
 
 import pandas as pd
 
@@ -156,7 +156,7 @@ class Runner(BaseRunner):
         model_path = os.path.join(self.cfg.work_dir, "final.ckpt")
         torch.save(self.model.module.state_dict(), model_path)
 
-    def run_iter(self, data_batch, train_mode) -> Tuple[torch.Tensor, torch.Tensor]:
+    def run_iter(self, data_batch, train_mode, get_outputs: bool = False):
         prots = data_batch['seq']
         outputs = self.batch_processor(
             self.model, data_batch, self.local_rank, train_mode)
@@ -164,9 +164,9 @@ class Runner(BaseRunner):
         if 'log_vars' in outputs:
             self.log_buffer.update(outputs['log_vars'], len(prots))
         self.outputs = outputs
-        probabilities = torch.sigmoid(outputs["model_outputs"])
-        preds = probabilities >= self.cls_threshold
-        return probabilities, preds
+
+        if get_outputs:
+            return outputs
 
     def train(self):
         """
@@ -245,19 +245,48 @@ class Runner(BaseRunner):
         self.call_hook('after_val_epoch')
 
     @torch.no_grad()
-    def inference(self, output_path: str):
+    def inference(self, output_path: str, task: Literal["cls", "reg"]):
         """
         Used for basic model inference
         """
+        if task not in ["cls", "reg"]:
+            raise ValueError("Unrecognized inference task, "
+                             "please choose one from (cls, reg)")
+
+        self.register_test_hooks()
         if self.local_rank == 0:
-            self.logger.info('Start running,workdir:{}'.format(self.cfg.work_dir))
+            self.logger.info("Start running,workdir:{}".format(self.cfg.work_dir))
         self.model.eval()
         self.cur_dataloader = self.test_dataloader
+        # Load model checkpoint.
+        self.call_hook("before_val_epoch")
+
         time.sleep(2)  # Prevent possible deadlock during epoch transition
-        all_probabilities, all_preds = [], []
+        all_probs, all_preds, all_seqs = [], [], []
         for i, data_batch in tqdm(enumerate(self.cur_dataloader)):
             self._inner_iter = i
-            probabilities, preds = self.run_iter(data_batch, train_mode=False)
-            all_probabilities += probabilities.tolist()
-            all_preds += ["AMP" if x else "non-AMP" for x in preds.tolist()]
-        pd.DataFrame({"Prediction": all_preds, "Probability_score": all_probabilities}).to_csv(output_path, sep="\t")
+            outputs = self.run_iter(data_batch, train_mode=False, get_outputs=True)
+            all_seqs += list(data_batch["seq"])
+
+            if task == "cls":
+                probs = torch.sigmoid(outputs["model_outputs"])
+                preds = probs >= self.cls_threshold
+                all_probs += probs.tolist()
+                all_preds += ["AMP" if x else "non-AMP" for x in preds.tolist()]
+
+            else:
+                all_preds += outputs["model_outputs"].tolist()
+
+        if task == "cls":
+            results = {
+                "Sequence": all_seqs,
+                "Probability_score": all_probs,
+                "Prediction": all_preds
+            }
+        else:
+            results = {
+                "Sequence": all_seqs,
+                "MIC": all_preds
+            }
+
+        pd.DataFrame(results).to_csv(output_path, sep="\t", index=False)

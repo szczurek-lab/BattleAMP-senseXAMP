@@ -77,12 +77,20 @@ if __name__ == '__main__':
     parser.add_argument('--dataset_dir', default='./datasets/stc_datasets/AMPlify', help='path to stc_dataset')
     parser.add_argument("--datafile", default="data.csv", help='name of csv with peptides (from stc_datasets)')
     parser.add_argument('--fname', default='AMPlify.h5', help='name of output file name, name it xxx.h5')
+    parser.add_argument(
+        '--task', type=str, required=False, choices=['cls', 'reg'], default='cls',
+        help='Benchmark inference task (cls or reg), required only when using '
+             '"inference" mode'
+    )
     args = parser.parse_args()
     datadir = args.dataset_dir
     filename = args.datafile
     outdir = './datasets/stc_info'
     outname = args.fname
-    processor = StcProcessor(label_cols=['Labels'])
+    if args.task == 'reg':
+        processor = StcProcessor(label_cols=['Labels', 'MIC'])
+    else:
+        processor = StcProcessor(label_cols=['Labels'])
     dataset = pd.read_csv(os.path.join(datadir, filename))
     processor.load_dataset(dataset)
     processor.generate_normed_data(outdir, outname)
