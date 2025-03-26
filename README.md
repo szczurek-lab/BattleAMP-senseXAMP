@@ -32,6 +32,15 @@ BattleAMP benchmark
 |  Regression E. coli  | regression_ecoli     |  [sensexamp_reg_ecoli](https://drive.google.com/drive/folders/1QWrv0P2mo85AazilU7bzQrf8rWHM0lt-)   |
 | Regression S. aureus | regression_saureus   | [sensexamp_reg_saureus](https://drive.google.com/drive/folders/1QWrv0P2mo85AazilU7bzQrf8rWHM0lt-)  |
 
+```shell
+mkdir weights/amp_cls
+mkdir weights/amp_reg
+gdown  "https://drive.google.com/uc?id=18_ag5WLN1j88QymdxumsjBQglmsfyQb8" -O weights/amp_cls/sensexamp_cls_balanced.ckpt
+gdown  "https://drive.google.com/uc?id=1RR1kyuyYkCv9HoUdP6-MD2Jxj1pBjs_m" -O weights/amp_reg/sensexamp_reg_saureus.ckpt
+gdown  "https://drive.google.com/uc?id=1Q3P9qmHOj2oofLkIVmJJiKz9xcoMQ44K" -O weights/amp_reg/sensexamp_reg_ecoli.ckpt
+
+```
+
 ### Usage
 1. Create conda environment. Refer to [installation](#Installation) section.
 2. Download model checkpoints to `weights` folder.
