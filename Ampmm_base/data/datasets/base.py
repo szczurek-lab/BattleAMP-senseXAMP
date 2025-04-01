@@ -13,7 +13,7 @@ class AMPCls_Dataset(data.Dataset):
         self.data_df = pd.read_csv(data_file)
         self.all_embeddings = h5py.File(embeddings_fpath,'r') if embeddings_fpath else None
         self.stc_info = h5py.File(stc_fpath,'r') if stc_fpath else None
-        self.labels = torch.tensor(self.data_df['Labels'].tolist()) # for Distributed weighted data sampler
+        # self.labels = torch.tensor(self.data_df['Labels'].tolist()) # for Distributed weighted data sampler
 
     def __len__(self):
         return len(self.data_df)    
@@ -35,12 +35,13 @@ class AMPCls_Dataset(data.Dataset):
             stc: structure features
         """
         data_item = self.data_df.iloc[idx]
-        label = data_item['Labels']
-        tensor_label = torch.tensor(label, dtype=torch.float)
+        # label = data_item['Labels']
+        # tensor_label = torch.tensor(label, dtype=torch.float)
+
         seq =  data_item['Sequence']
         emb = []
         stc = []
-        input_data = {'seq':seq,'label':tensor_label}
+        input_data = {'seq':seq}
         if self.all_embeddings:
             emb = self._load_embeddings(seq)
         if self.stc_info:
@@ -83,7 +84,7 @@ class AMPMultiLabel_Dataset(data.Dataset):
         seq =  data_item['Sequence']
         emb = []
         stc = []
-        input_data = {'seq':seq,'label':tensor_label}
+        input_data = {'seq':seq}
         if self.all_embeddings:
             emb = self._load_embeddings(seq)
         if self.stc_info:
@@ -100,7 +101,7 @@ class AMPMIC_Dataset(data.Dataset):
         self.data_df = pd.read_csv(data_file)
         self.all_embeddings = h5py.File(embeddings_fpath,'r') if embeddings_fpath else None
         self.stc_info = h5py.File(stc_fpath,'r') if stc_fpath else None
-        self.labels = torch.tensor(self.data_df['Labels'].tolist()) # for Distributed data sampler
+        # self.labels = torch.tensor(self.data_df['Labels'].tolist()) # for Distributed data sampler
         
     def __len__(self):
         return len(self.data_df)
@@ -122,14 +123,14 @@ class AMPMIC_Dataset(data.Dataset):
             stc: structure features
         """
         data_item = self.data_df.iloc[idx]
-        mic = data_item['MIC']
-        mic = torch.tensor(mic, dtype=torch.float)
+        # mic = data_item['MIC']
+        # mic = torch.tensor(mic, dtype=torch.float)
         seq =  data_item['Sequence']
-        label = data_item['Labels']
-        tensor_label = torch.tensor(label, dtype=torch.float)
+        # label = data_item['Labels']
+        # tensor_label = torch.tensor(label, dtype=torch.float)
         emb = []
         stc = []
-        input_data = {'seq':seq,'label':tensor_label,'mic':mic}
+        input_data = {'seq':seq}
         if self.all_embeddings:
             emb = self._load_embeddings(seq)
         if self.stc_info:

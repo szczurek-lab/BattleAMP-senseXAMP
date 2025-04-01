@@ -46,8 +46,8 @@ def default_batch_processor(model, data_batch, local_rank, train_mode):
     else:
         model.eval()
     batch_tokens = batch_tokens.to(local_rank)
-    label = data_batch['label'].to(local_rank)
-    input_data = {'batch_tokens':batch_tokens, 'label':label}
+    # label = data_batch['label'].to(local_rank)
+    input_data = {'batch_tokens':batch_tokens}
     if 'mic' in data_batch:
         mic = data_batch['mic'].to(local_rank)
         input_data['mic'] = mic
@@ -77,8 +77,8 @@ def ranking_batch_processor(model, data_batch, local_rank, train_mode):
         model.eval()
     batch_tokens = batch_tokens.to(local_rank)
     mic = data_batch['mic'].to(local_rank)
-    label = data_batch['label']
-    input_data = {'batch_tokens':batch_tokens, 'label':label, 'mic':mic}
+    # label = data_batch['label']
+    input_data = {'batch_tokens':batch_tokens, 'mic':mic}
     outputs = model(input_data)
     outputs['seq'] = data_batch['seq']
     return outputs
@@ -97,17 +97,18 @@ def base_batch_processor(model, data_batch, local_rank, train_mode):
         model.eval()
     batch_tokens = data_batch['emb'] # avg pooling of each token
     batch_tokens = batch_tokens.to(local_rank)
-    label = data_batch['label'].to(local_rank)
-    input_data = {'batch_tokens':batch_tokens, 'label':label}
+    # label = data_batch['label'].to(local_rank)
+    input_data = {'batch_tokens':batch_tokens}
     if 'stc' in data_batch:
         stc_info = data_batch['stc'].to(local_rank)
         input_data['stc'] = stc_info
     if 'mic' in data_batch:
         mic = data_batch['mic'].to(local_rank)
         input_data['mic'] = mic
-    outputs = model(input_data)
-    if train_mode:
-        loss,log_vars = parse_losses(outputs)
-        outputs = dict(loss=loss,log_vars=log_vars)
-    outputs['seq'] = data_batch['seq']
-    return outputs
+    with torch.cuda.amp.autocast():
+        outputs = model(input_data)
+        if train_mode:
+            loss,log_vars = parse_losses(outputs)
+            outputs = dict(loss=loss,log_vars=log_vars)
+        outputs['seq'] = data_batch['seq']
+        return outputs

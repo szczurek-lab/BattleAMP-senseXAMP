@@ -211,14 +211,14 @@ class BaseSlfAttnModel(nn.Module):
         cls_token = slf_attn_output[:,0,:]
         output_logits = self.cls_head(cls_token)
         output_logits = output_logits.squeeze(dim=-1)
-        gt = input_data['label'] if self.mode == 'cls' else input_data['mic']
+        # gt = input_data['label'] if self.mode == 'cls' else input_data['mic']
         if self.training:
             loss_dict = self.loss_evaluator(output_logits,gt)
             return loss_dict
         else:
             results = dict(
                 model_outputs = output_logits,
-                labels = gt
+                # labels = gt
             )
             return results
 
@@ -290,14 +290,14 @@ class BaseCrossAttnModel(nn.Module):
         cls_token = cross_attn_output[:,0,:]
         output_logits = self.cls_head(cls_token)
         output_logits = output_logits.squeeze(dim=-1)
-        gt = input_data['label'] if self.mode == 'cls' else input_data['mic']
+        # gt = input_data['label'] if self.mode == 'cls' else input_data['mic']
         if self.training:
             loss_dict = self.loss_evaluator(output_logits,gt)
             return loss_dict
         else:
             results = dict(
                 model_outputs = output_logits,
-                labels = gt
+                # labels = gt
             )
             return results
 
@@ -354,14 +354,14 @@ class SlfAttnEnsembelModel(nn.Module):
         output_logit2 = output_logit2.squeeze(dim=-1)
         output_logit3 = output_logit3.squeeze(dim=-1)
         pred_output = (output_logit1+output_logit2+output_logit3)/3
-        gt = input_data['label'] if self.mode == 'cls' else input_data['mic']
+        # gt = input_data['label'] if self.mode == 'cls' else input_data['mic']
         if self.training:
             loss_dict = self.loss_evaluator(pred_output,gt)
             return loss_dict
         else:
             results = dict(
                 model_outputs = pred_output,
-                labels = gt
+                # labels = gt
             )
             return results
 
@@ -417,7 +417,7 @@ class MultiModalFusionModel(nn.Module):
         cls_token = cross_attn_output[:,0,:]
         output_logits = self.cls_head_final(cls_token)
         final_pred = output_logits.squeeze(dim=-1)
-        gt = input_data['label'] if self.mode == 'cls' else input_data['mic']
+        # gt = input_data['label'] if self.mode == 'cls' else input_data['mic']
         pred_output = {'stc_pred':stc_pred,'slf_pred':slf_pred,'final_pred':final_pred}
         if self.training:
             loss_dict = self.loss_evaluator(pred_output,gt)
@@ -426,6 +426,6 @@ class MultiModalFusionModel(nn.Module):
             results = dict(
                 # model_outputs = pred_logits,
                 model_outputs = final_pred,
-                labels = gt
+                # labels = gt
             )
             return results

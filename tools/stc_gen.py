@@ -16,14 +16,12 @@ class StcProcessor:
         column name of label
     """
 
-    def __init__(self, label_cols=List[Str]) -> None:
+    def __init__(self) -> None:
         self.allseqs = []
         self.norm_parms = None
-        self.label_cols = label_cols
 
     def load_dataset(self, dataset: pd.DataFrame):
         self.get_norm_parms(dataset)
-        dataset.drop(columns=self.label_cols, inplace=True)
         dataset.drop_duplicates(['Sequence'], keep='first', inplace=True)
         columns = dataset.columns.tolist()
         # newDataFrame will retain sequence and normed features, drop label cols
@@ -41,13 +39,13 @@ class StcProcessor:
                     print("nan col, std is {} mean is: {}".format(data.std(), data.mean()))
                 dataset[col] = data
         self.df = dataset
-        print("columns of normed dataframe: {}".format(len(self.df.columns.tolist())))
+        # print("columns of normed dataframe: {}".format(len(self.df.columns.tolist())))
 
     def get_norm_parms(self, dataframe):
         self.norm_parms = {}
         columns = dataframe.columns.tolist()
         for col in columns:
-            if (col == 'Sequence') or (col in self.label_cols):
+            if (col == 'Sequence'):
                 continue
             else:
                 data = dataframe[col]
@@ -88,9 +86,9 @@ if __name__ == '__main__':
     outdir = './datasets/stc_info'
     outname = args.fname
     if args.task == 'reg':
-        processor = StcProcessor(label_cols=['Labels', 'MIC'])
+        processor = StcProcessor()
     else:
-        processor = StcProcessor(label_cols=['Labels'])
+        processor = StcProcessor()
     dataset = pd.read_csv(os.path.join(datadir, filename))
     processor.load_dataset(dataset)
     processor.generate_normed_data(outdir, outname)
