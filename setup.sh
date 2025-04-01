@@ -1,4 +1,3 @@
-conda install pytorch==1.7.1 -c pytorch
 
 pip install -r requirements.txt
 

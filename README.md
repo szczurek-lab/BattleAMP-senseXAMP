@@ -10,16 +10,15 @@
 ## Installation
 
 ```bash
-# clone project
-git clone https://github.com/William-Zhanng/SenseXAMP.git
-cd SenseXAMP
-
 # create conda virtual environment
-conda create -n torch1.7 python=3.8 
-conda activate torch1.7
+conda create -n sensexamp python=3.9
+conda activate sensexamp
+sh setup.sh
+```
 
-# install all requirements
-pip install -r requirements.txt
+Test whether everything works:
+```
+sh inference.sh sample.fasta results.tsv classification
 ```
 
 BattleAMP benchmark
@@ -31,15 +30,6 @@ BattleAMP benchmark
 |      Classifier      | classification       | [sensexamp_cls_balanced](https://drive.google.com/drive/folders/1JKNH-3gUD2qVkhWiUqXNF1Ef-a4CPzvS) |
 |  Regression E. coli  | regression_ecoli     |  [sensexamp_reg_ecoli](https://drive.google.com/drive/folders/1QWrv0P2mo85AazilU7bzQrf8rWHM0lt-)   |
 | Regression S. aureus | regression_saureus   | [sensexamp_reg_saureus](https://drive.google.com/drive/folders/1QWrv0P2mo85AazilU7bzQrf8rWHM0lt-)  |
-
-```shell
-mkdir weights/amp_cls
-mkdir weights/amp_reg
-gdown  "https://drive.google.com/uc?id=18_ag5WLN1j88QymdxumsjBQglmsfyQb8" -O weights/amp_cls/sensexamp_cls_balanced.ckpt
-gdown  "https://drive.google.com/uc?id=1RR1kyuyYkCv9HoUdP6-MD2Jxj1pBjs_m" -O weights/amp_reg/sensexamp_reg_saureus.ckpt
-gdown  "https://drive.google.com/uc?id=1Q3P9qmHOj2oofLkIVmJJiKz9xcoMQ44K" -O weights/amp_reg/sensexamp_reg_ecoli.ckpt
-
-```
 
 ### Usage
 1. Create conda environment. Refer to [installation](#Installation) section.

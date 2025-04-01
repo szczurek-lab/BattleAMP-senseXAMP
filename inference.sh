@@ -30,16 +30,25 @@ JSON=$(jq -n \
 
 echo $JSON > configs/$task\_task/custom.json
 
+echo "Converting inputs..."
 python tools/convert_inputs.py --fasta_file $input_fasta --csv_file $inputpath --task $task &&
 
+echo "Generating embeddings..."
 python tools/esm_emb_gen.py --dataset_path $inputpath &&
 
+echo "Generate structured peptide data..."
+echo "$inputpath"
+echo "datasets/stc_datasets/$filename"
 python tools/generate_stc_csv.py --inputpath $inputpath --outputpath datasets/stc_datasets/$filename --task $task &&
 
+echo "Generating .h5 files..."
 python tools/stc_gen.py --dataset_dir datasets/stc_datasets/ --datafile $filename --fname $rawname.h5 --task $task &&
 
+echo "Running prediction..."
 python -m torch.distributed.launch run.py --config configs/$task\_task/$config.py --mode inference --task $task --output_path $outputpath &&
 
-python tools/convert_outputs.py --input_file $input_fasta --output_file $outputpath --task $task &&
+echo "Converting outputs..."
+python tools/convert_outputs.py --input_file $input_fasta --output_file $outputpath --task $task
 
-rm $inputpath
+
+#rm $inputpath
