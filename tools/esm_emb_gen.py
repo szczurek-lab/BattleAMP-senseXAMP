@@ -29,7 +29,7 @@ class EmbeddingProcessor:
         """
         for file in datasets_list:
             df = pd.read_csv(file)
-            print(df)
+            # print(df)
             self.all_seqs.extend(df['Sequence'].values)
         self.all_seqs = set(self.all_seqs)
 
@@ -51,7 +51,7 @@ class EmbeddingProcessor:
         max_len = 64
         if mode == 'all':
             max_len = self.max_len
-            print("Max length: {}".format(self.max_len))
+            # print("Max length: {}".format(self.max_len))
 
         with h5py.File(os.path.join(outdir,fname), 'w') as hf:
             for seq in tqdm(self.all_seqs):
@@ -67,8 +67,10 @@ class EmbeddingProcessor:
                     embedding = token_representations[:,0,:].squeeze(0)  # cls token
                 else: # mode = 'all' (SenseXAMP use this type)
                     embedding = token_representations.squeeze(0)          # [676,1280]
-                embedding = embedding.cpu().numpy()
-                hf.create_dataset(seq, data=embedding)
+                    embedding = embedding.cpu().numpy()
+                    embedding = embedding.astype('half')  # Reduce precision to save space
+                    hf.create_dataset(seq, data=embedding, compression="gzip", compression_opts=9, shuffle=True,
+                                      chunks=(23, 1280))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='A script to calculate esm_embeddings version of datasets')
@@ -78,8 +80,6 @@ if __name__ == '__main__':
     dataset_path = args.dataset_path
     dataset_name = os.path.split(dataset_path)[-1]
     embedding_name = f"{os.path.splitext(dataset_name)[0]}.h5"
-    print(embedding_name)
     datasets_list = [dataset_path]
     processor.get_seqs_from_datasets(datasets_list)
     processor.generate_embeddings('./datasets/esm_embeddings/all', mode='all', fname=embedding_name)
-    print("generated esm embeddings")
