@@ -58,8 +58,11 @@ class EmbeddingProcessor:
                 data = [(seq,seq)]
                 _, _, batch_tokens = self.batch_converter(data, max_length=max_len) 
                 batch_tokens = batch_tokens.to(device)
-                with torch.no_grad():
-                    results = self.pretrain_model(batch_tokens, repr_layers=[33], return_contacts=True)
+                try:
+                    with torch.no_grad():
+                        results = self.pretrain_model(batch_tokens, repr_layers=[33], return_contacts=True)
+                except:
+                    print(seq)
                 token_representations = results["representations"][33]
                 if mode == 'pooling':
                     embedding = token_representations.mean(1).squeeze(0)  # [1280]

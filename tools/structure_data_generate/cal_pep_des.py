@@ -34,7 +34,7 @@ def isvalid(line):
     return False
 
 
-def cal_pep(peptide: str, idx: int, mic_results: List = None, labels: List = None) -> Dict:
+def cal_pep(peptide: str, idx: int) -> Dict:
     """
     Calculate structure data for a peptide
     """
@@ -57,17 +57,10 @@ def cal_pep(peptide: str, idx: int, mic_results: List = None, labels: List = Non
     peptides_descriptor.update(PAAC)
     peptides_descriptor.update(APAAC)
     peptides_descriptor.update(Basic)
-
-    # Adding MIC and Labels if provided
-    if mic_results is not None:
-        peptides_descriptor["MIC"] = mic_results[idx]
-    if labels is not None:
-        peptides_descriptor["Labels"] = labels[idx]
-
     return peptides_descriptor
 
 
-def process_peptides(peptides_list: List[str], mic_results: List = None, labels: List = None) -> List[Dict]:
+def process_peptides(peptides_list: List[str]) -> List[Dict]:
     """
     Process a list of peptides and calculate their descriptors using multiprocessing with tqdm progress bar.
     """
@@ -76,7 +69,7 @@ def process_peptides(peptides_list: List[str], mic_results: List = None, labels:
 
     # Create a tqdm progress bar for multiprocessing
     with Pool(cpu_count()) as pool:
-        func = partial(cal_pep, mic_results=mic_results, labels=labels)
+        func = partial(cal_pep)
 
         # Use imap_unordered to get the result while updating the tqdm progress bar
         result = pool.starmap(func, peptides_to_process)  # Change to imap_unordered if you want unordered results
@@ -91,8 +84,7 @@ def is_valid_peptide(peptide: str):
     valid_amino_acids = set("ACDEFGHIKLMNPQRSTVWY")  # Standard 20 amino acids
     return all(char in valid_amino_acids for char in peptide)
 
-def cal_pep_fromlist(peptides_list: List[Str], output_path: Str, retain_columns: List[str] = None, 
-                 mic_results: List[float] = None, labels: List = None):
+def cal_pep_fromlist(peptides_list: List[Str], output_path: Str, retain_columns: List[str] = None):
     """
     Calculate structure data for a list of peptides
     Args:
@@ -105,7 +97,7 @@ def cal_pep_fromlist(peptides_list: List[Str], output_path: Str, retain_columns:
         output_csv
     """
     print("total {} peptides ".format(len(peptides_list)))
-    peptides_descriptors = process_peptides(peptides_list, mic_results=mic_results, labels=labels)
+    peptides_descriptors = process_peptides(peptides_list)
     output_csv = pd.DataFrame(peptides_descriptors)
     if retain_columns is not None:
         print("total {} features to reserve".format(len(retain_columns)))
