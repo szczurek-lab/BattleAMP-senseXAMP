@@ -1,10 +1,16 @@
 import argparse
 import pandas as pd
+import os
 from typing import Literal
 
 
 def convert_inputs(fasta_file: str, csv_file: str) -> None:
 	"""Convert inputs from fasta to csv format required by SenseXAMP taskl."""
+
+	if not os.path.exists(fasta_file):
+		print(f"Error: The file '{fasta_file}' does not exist.")
+		return
+
 	print("Converting inputs")
 	with open(fasta_file, "r") as file:
 		lines = file.readlines()
