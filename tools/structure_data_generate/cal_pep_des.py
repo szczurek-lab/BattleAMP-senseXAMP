@@ -1,7 +1,5 @@
 from ast import Dict, Str
 import imp
-from multiprocessing import Pool, cpu_count
-
 from .BasicDes import cal_discriptors
 from .AAComposition import CalculateAAComposition,CalculateDipeptideComposition
 from .Autocorrelation import CalculateNormalizedMoreauBrotoAutoTotal
@@ -12,8 +10,6 @@ import pandas as pd
 import numpy as np
 import os
 import math
-from functools import partial
-
 import torch
 import h5py
 from tqdm import tqdm
@@ -33,13 +29,12 @@ def isvalid(line):
         return True
     return False
 
-
-def cal_pep(peptide: str, idx: int) -> Dict:
+def cal_pep(peptide:Str)-> Dict:
     """
     Calculate structure data for a peptide
     """
     peptide = str(peptide)
-    peptides_descriptor = {}
+    peptides_descriptor={}
     peptides_descriptor['Sequence'] = peptide
     AAC = CalculateAAComposition(peptide)
     DIP = CalculateDipeptideComposition(peptide)
@@ -57,34 +52,11 @@ def cal_pep(peptide: str, idx: int) -> Dict:
     peptides_descriptor.update(PAAC)
     peptides_descriptor.update(APAAC)
     peptides_descriptor.update(Basic)
+
     return peptides_descriptor
 
-
-def process_peptides(peptides_list: List[str]) -> List[Dict]:
-    """
-    Process a list of peptides and calculate their descriptors using multiprocessing with tqdm progress bar.
-    """
-    # Only process peptides of length >= 6
-    peptides_to_process = [(peptide, idx) for idx, peptide in enumerate(peptides_list) if len(peptide) >= 6]
-
-    # Create a tqdm progress bar for multiprocessing
-    with Pool(cpu_count()) as pool:
-        func = partial(cal_pep)
-
-        # Use imap_unordered to get the result while updating the tqdm progress bar
-        result = pool.starmap(func, peptides_to_process)  # Change to imap_unordered if you want unordered results
-
-        # Using tqdm to wrap the iterable and show progress
-        peptides_descriptors = list(tqdm(result, total=len(peptides_to_process), desc="Processing Peptides"))
-
-    return peptides_descriptors
-
-def is_valid_peptide(peptide: str):
-    """Check if peptide contains only standard amino acids"""
-    valid_amino_acids = set("ACDEFGHIKLMNPQRSTVWY")  # Standard 20 amino acids
-    return all(char in valid_amino_acids for char in peptide)
-
-def cal_pep_fromlist(peptides_list: List[Str], output_path: Str, retain_columns: List[str] = None):
+def cal_pep_fromlist(peptides_list: List[Str], output_path: Str, retain_columns: List[str] = None, 
+                 mic_results: List[float] = None, labels: List = None):
     """
     Calculate structure data for a list of peptides
     Args:
@@ -97,13 +69,22 @@ def cal_pep_fromlist(peptides_list: List[Str], output_path: Str, retain_columns:
         output_csv
     """
     print("total {} peptides ".format(len(peptides_list)))
-    peptides_descriptors = process_peptides(peptides_list)
+    peptides_descriptors = []
+    for idx,peptide in tqdm(enumerate(peptides_list)):
+        if len(peptide) < 6:
+            continue
+        peptides_descriptor = cal_pep(peptide)
+        if not(mic_results is None):
+            peptides_descriptor["MIC"] = mic_results[idx]
+        if not (labels is None):
+            peptides_descriptor["Labels"] = labels[idx]
+        peptides_descriptors.append(peptides_descriptor)
     output_csv = pd.DataFrame(peptides_descriptors)
     if retain_columns is not None:
         print("total {} features to reserve".format(len(retain_columns)))
         print(len(output_csv.columns))
         output_csv = output_csv[retain_columns]
-    output_csv.to_csv(output_path,index=False)
+    output_csv.to_csv(output_path,index=False) 
     print("The output csv shape is : {}".format(output_csv.shape))
     return output_csv
 
@@ -113,7 +94,7 @@ def df2h5(df,outdir):
     """
     os.makedirs(outdir,exist_ok=True)
     all_seqs = df['sequence'].tolist()
-    for seq in tqdm(all_seqs):
+    for seq in all_seqs:
         f_name = os.path.join(outdir,'{}.h5'.format(seq))
         idx = df.index[(df['sequence'] == seq)].tolist()[0]
         data = df.loc[idx][1:]

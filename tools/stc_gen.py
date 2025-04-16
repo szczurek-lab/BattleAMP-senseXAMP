@@ -1,3 +1,4 @@
+
 from typing import Dict, List
 from xxlimited import Str
 import pandas as pd
@@ -5,7 +6,6 @@ import numpy as np
 import h5py
 import os
 import argparse
-from tqdm import tqdm
 import torch
 
 
@@ -63,7 +63,7 @@ class StcProcessor:
         """
         os.makedirs(outdir, exist_ok=True)
         with h5py.File(os.path.join(outdir, fname), 'w') as hf:
-            for i in tqdm(range(len(self.df))):
+            for i in range(len(self.df)):
                 seq = self.df.iloc[i, 0]
                 data = np.array(self.df.iloc[i, 1:]).astype(np.float32)
                 data = torch.tensor(data)

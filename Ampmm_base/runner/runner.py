@@ -14,7 +14,6 @@ from Ampmm_base.data.dataloaders import build_data_loader
 from Ampmm_base.models import build_model
 from transformers.optimization import get_linear_schedule_with_warmup
 from transformers import optimization
-from tqdm import tqdm
 # for ddp
 from torch.nn.parallel import DistributedDataParallel as DDP
 import time
@@ -191,7 +190,7 @@ class Runner(BaseRunner):
         self.cur_dataloader = dataloader
         self.call_hook('before_val_epoch')
         time.sleep(2)  # Prevent possible deadlock during epoch transition
-        for i, data_batch in tqdm(enumerate(dataloader)):
+        for i, data_batch in enumerate(dataloader):
             self._inner_iter = i
             self.call_hook('before_val_iter')
             self.run_iter(data_batch, train_mode=False)
@@ -237,7 +236,7 @@ class Runner(BaseRunner):
         self.cur_dataloader = self.test_dataloader
         self.call_hook('before_val_epoch')
         time.sleep(2)  # Prevent possible deadlock during epoch transition
-        for i, data_batch in tqdm(enumerate(self.cur_dataloader)):
+        for i, data_batch in enumerate(self.cur_dataloader):
             self._inner_iter = i
             self.call_hook('before_val_iter')
             self.run_iter(data_batch, train_mode=False)
@@ -263,7 +262,7 @@ class Runner(BaseRunner):
 
         time.sleep(2)  # Prevent possible deadlock during epoch transition
         all_probs, all_preds, all_seqs = [], [], []
-        for i, data_batch in tqdm(enumerate(self.cur_dataloader)):
+        for i, data_batch in enumerate(self.cur_dataloader):
             self._inner_iter = i
             outputs = self.run_iter(data_batch, train_mode=False, get_outputs=True)
             all_seqs += list(data_batch["seq"])

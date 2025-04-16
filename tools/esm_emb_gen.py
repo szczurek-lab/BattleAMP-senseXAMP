@@ -5,7 +5,6 @@ import torch
 import h5py
 import os
 import esm_project as esm
-from tqdm import tqdm
 from typing import List
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -54,7 +53,7 @@ class EmbeddingProcessor:
             # print("Max length: {}".format(self.max_len))
 
         with h5py.File(os.path.join(outdir,fname), 'w') as hf:
-            for seq in tqdm(self.all_seqs):
+            for seq in self.all_seqs:
                 data = [(seq,seq)]
                 _, _, batch_tokens = self.batch_converter(data, max_length=max_len) 
                 batch_tokens = batch_tokens.to(device)
@@ -72,8 +71,9 @@ class EmbeddingProcessor:
                     embedding = token_representations.squeeze(0)          # [676,1280]
                     embedding = embedding.cpu().numpy()
                     embedding = embedding.astype('half')  # Reduce precision to save space
+                    chunk = 23 if len(self.all_seqs) > 23 else 2
                     hf.create_dataset(seq, data=embedding, compression="gzip", compression_opts=9, shuffle=True,
-                                      chunks=(23, 1280))
+                                      chunks=(chunk, 1280))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='A script to calculate esm_embeddings version of datasets')

@@ -1,8 +1,10 @@
+
 input_fasta=${1}
 outputpath=${2}
 model=${3}
 
-# Determine task and config based on the model input
+set -e
+
 if [ "$model" = "classification" ]; then
   task="cls"
   config="battleamp_SenseXAMP"
@@ -53,25 +55,25 @@ else
 fi
 
 echo "Converting inputs..."
-python tools/convert_inputs.py --fasta_file $input_fasta --csv_file $inputpath &&
+python tools/convert_inputs.py --fasta_file $input_fasta --csv_file $inputpath 
 
 echo "Generating embeddings..."
-python tools/esm_emb_gen.py --dataset_path $inputpath &&
+python tools/esm_emb_gen.py --dataset_path $inputpath 
 
 echo "Generate structured peptide data..."
 echo "$inputpath"
 echo "datasets/stc_datasets/$filename"
-python tools/generate_stc_csv.py --inputpath $inputpath --outputpath datasets/stc_datasets/$filename &&
+python tools/generate_stc_csv.py --inputpath $inputpath --outputpath datasets/stc_datasets/$filename 
 
 echo "Generating .h5 files..."
-python tools/stc_gen.py --dataset_dir datasets/stc_datasets/ --datafile $filename --fname $rawname.h5 &&
+python tools/stc_gen.py --dataset_dir datasets/stc_datasets/ --datafile $filename --fname $rawname.h5 
 
 if [ "$model" = "multioutput" ]; then
   echo "Running classification prediction..."
-  python -m torch.distributed.launch run.py --config configs/$task_classification\_task/$config_classification.py --mode inference --task $task_classification --output_path $output_classification &&
+  python -m torch.distributed.launch run.py --config configs/$task_classification\_task/$config_classification.py --mode inference --task $task_classification --output_path $output_classification 
 
   echo "Running regression (ecoli) prediction..."
-  python -m torch.distributed.launch run.py --config configs/$task_reg_ecoli\_task/$config_reg_ecoli.py --mode inference --task $task_reg_ecoli --output_path $output_reg_ecoli &&
+  python -m torch.distributed.launch run.py --config configs/$task_reg_ecoli\_task/$config_reg_ecoli.py --mode inference --task $task_reg_ecoli --output_path $output_reg_ecoli 
 
   echo "Running regression (saureus) prediction..."
   python -m torch.distributed.launch run.py --config configs/$task_reg_saureus\_task/$config_reg_saureus.py --mode inference --task $task_reg_saureus --output_path $output_reg_saureus
