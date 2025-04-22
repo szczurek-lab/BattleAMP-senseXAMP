@@ -79,7 +79,7 @@ if [ "$model" = "multioutput" ]; then
   python -m torch.distributed.launch run.py --config configs/$task_reg_saureus\_task/$config_reg_saureus.py --mode inference --task $task_reg_saureus --output_path $output_reg_saureus
 else
   echo "Running prediction..."
-  python -m torch.distributed.launch run.py --config configs/$task\_task/$config.py --mode inference --task $task --output_path $output_file
+  python -m torch.distributed.launch run.py --config configs/$task\_task/$config.py --mode inference --task $task --output_path $outputpath
 fi
 
 echo "Converting outputs..."
@@ -87,8 +87,9 @@ if [ "$model" = "multioutput" ]; then
   python tools/convert_outputs.py --input_file $input_fasta --output_file $output_classification --task $task_classification
   python tools/convert_outputs.py --input_file $input_fasta --output_file $output_reg_ecoli --task $task_reg_ecoli
   python tools/convert_outputs.py --input_file $input_fasta --output_file $output_reg_saureus --task $task_reg_saureus
+  python tools/merge_outputs.py --classifier $output_classification --ecoli $output_reg_ecoli --saureus $output_reg_saureus --output $outputpath
 else
-  python tools/convert_outputs.py --input_file $input_fasta --output_file $output_file --task $task
+  python tools/convert_outputs.py --input_file $input_fasta --output_file $outputpath --task $task
 fi
 
 # Clean up intermediate files
