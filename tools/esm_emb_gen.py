@@ -71,7 +71,7 @@ class EmbeddingProcessor:
                     embedding = token_representations.squeeze(0)          # [676,1280]
                     embedding = embedding.cpu().numpy()
                     embedding = embedding.astype('half')  # Reduce precision to save space
-                    chunk = 23 if len(self.all_seqs) > 23 else 2
+                    chunk = 23 if len(seq) > 23 else 2
                     hf.create_dataset(seq, data=embedding, compression="gzip", compression_opts=9, shuffle=True,
                                       chunks=(chunk, 1280))
 
