@@ -94,3 +94,6 @@ fi
 
 # Clean up intermediate files
 rm $inputpath
+rm datasets/stc_datasets/* -r
+rm datasets/esm_embeddings/* -r
+rm datasets/stc_info/* -r
