@@ -1,0 +1,16 @@
+name: sensexamp
+type: classifier
+length_min: 6
+length_max: 25
+gpu_required: true
+multioutput: true
+variants:
+  - name: sensexamp-classifier
+    type: classifier
+    predictions_file: predictions-classifier.tsv
+  - name: sensexamp-ecoli
+    type: regressor
+    predictions_file: predictions-ecoli.tsv
+  - name: sensexamp-saureus
+    type: regressor
+    predictions_file: predictions-saureus.tsv
