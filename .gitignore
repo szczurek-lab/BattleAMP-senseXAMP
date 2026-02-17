@@ -1,6 +1,13 @@
+
+adapters
+benchmarks
 datasets
 .idea
+*.log
+logs
+*.pyc
 __pycache__
+results
+.snakemake
 weights
-datasets
-
+experiments/

@@ -1,171 +1,76 @@
 # SenseXAMP
 
-<a href="https://pytorch.org/get-started/locally/"><img alt="PyTorch" src="https://img.shields.io/badge/PyTorch-ee4c2c?logo=pytorch&logoColor=white"></a>
+Fork of [William-Zhanng/SenseXAMP](https://github.com/William-Zhanng/SenseXAMP), adapted
+for integration with the
+[battleamp-snakemake](https://github.com/szczurek-lab/battleamp-snakemake) benchmarking
+pipeline.
 
-## Supported Tasks
-* **Task1**: AMPs Binary classification.
-* **Task2**: AMPs regression.
-* **Other task**: Such as AMPs ranking and Multilabel classification, will be published in subsequent papers, coming soon.
+## Supported tasks
+
+AMP classification and AMP regression.
+
+## Reference
+
+Wentao Zhang, Yanchao Xu, Aowen Wang, Gang Chen, Junbo Zhao, Fuse feeds as one: cross-modal framework for general identification of AMPs, Briefings in Bioinformatics, Volume 24, Issue 6, November 2023, bbad336, https://doi.org/10.1093/bib/bbad336
+
+## Model overview
+
+SenseXAMP combines ESM-1b protein language model embeddings with sequence-derived
+physicochemical descriptors. The architecture uses a multi-branch design: an
+embedding branch with self-attention and a structured-data branch with fully connected
+layers, fused for final prediction.
+
+## Benchmark variants
+
+| Variant | Task | Description |
+|---|---|---|
+| `sensexamp-classifier` | Classification | Balanced AMP/non-AMP classifier |
+| `sensexamp-ecoli` | Regression | E. coli MIC prediction |
+| `sensexamp-saureus` | Regression | S. aureus MIC prediction |
+
+Each variant uses different pretrained weights (checkpoints in `weights/`).
+
+## Requirements
+
+- Python 3.8
+- conda (for environment creation by the pipeline)
+- NVIDIA GPU
+- Model checkpoints in `weights/` (download from Google Drive, see original README)
+- ESM-1b weights (~2.5 GB, downloaded automatically during setup)
+
+The model architecture and pretrained weights are unchanged. The original `Ampmm_base/` package, `run.py`, training configs, and all model code are
+preserved as-is.
 
 ## Installation
 
 ```bash
-# clone project
-git clone https://github.com/William-Zhanng/SenseXAMP.git
-cd SenseXAMP
-
-# create conda virtual environment
-conda create -n torch1.7 python=3.8 
-conda activate torch1.7
-
-# install all requirements
-pip install -r requirements.txt
+conda create -n sensexamp python=3.8
+conda activate sensexamp
+sh setup.sh
 ```
 
-BattleAMP benchmark
----
-### Available models
-
-|        Model         | Inference model name |                                             Checkpoint                                             |
-|:--------------------:|----------------------|:--------------------------------------------------------------------------------------------------:|
-|      Classifier      | classification       | [sensexamp_cls_balanced](https://drive.google.com/drive/folders/1JKNH-3gUD2qVkhWiUqXNF1Ef-a4CPzvS) |
-|  Regression E. coli  | regression_ecoli     |  [sensexamp_reg_ecoli](https://drive.google.com/drive/folders/1QWrv0P2mo85AazilU7bzQrf8rWHM0lt-)   |
-| Regression S. aureus | regression_saureus   | [sensexamp_reg_saureus](https://drive.google.com/drive/folders/1QWrv0P2mo85AazilU7bzQrf8rWHM0lt-)  |
-
-### Usage
-1. Create conda environment. Refer to [installation](#Installation) section.
-2. Download model checkpoints to `weights` folder.
-3. Run `inference.sh` script using corresponding inference model name. Example for running classification:
-    ```shell
-    sh inference.sh input.fasta output.tsv classification
-    ```
-
-Quick Usage of SenseXAMP
----
-## 1. Prepare datasets before using SenseXAMP
-### Datasets introduction
-Before utilizing SenseXAMP, it's important to prepare the datasets appropriately. Our research utilized several dataset versions, and it's crucial to have **all the following versions** of datasets ready before running SenseXAMP:
-
-#### ori_datasets
-- Format: **.csv**
-- Description: This includes `train.csv`, `val.csv`, and `test.csv`. These datasets exclusively contain sequences and corresponding labels.
-- Obtaining Method: Download the "ori_datasets" version of the datasets from [here.](https://drive.google.com/drive/folders/1L0OKKq3yQmKQTyFSQ3YUmB5RRnba10w1?usp=sharing)
-  
-#### esm_embeddings
-- Format: **.h5**
-- Description: These datasets are in .h5 format and are generated using the esm-1b model. This version of the dataset is derived from the `ori_datasets`.
-- Obtaining Method: By running the script `tools/esm_emb_gen.py` (Since embeddings files are too large)
-  
-#### stc_info
-- Format: **.h5**
-- Description: These datasets are in .h5 format and are obtained by calculating protein descriptors based on the sequences. This version of the dataset is derived from the `ori_datasets`.
-- Obtaining Method: 
-  1. Download from  [here.](https://drive.google.com/drive/folders/1L0OKKq3yQmKQTyFSQ3YUmB5RRnba10w1?usp=sharing)
-  2. By running the script  `tools/stc_gen.py` (Must get `stc_csv` version first)
-  
-#### stc_datasets 
-- Format: **.csv**
-- Description: These datasets are in .h5 format and are obtained by calculating protein descriptors based on the sequences.  Also includes `train.csv`, `val.csv`, and `test.csv`. This version of the dataset is derived from the `ori_datasets`.
-- Obtaining Method: By running the script: `tools/generate_csv.py`
-  
-**Note:** The "stc_csv" dataset version is primarily intended for comparative methods like SMEP and is not necessary for using SenseXAMP.
-
-### Datasets obtain
-1. Download the "ori_datasets" version of the datasets from [here.](https://drive.google.com/drive/folders/1L0OKKq3yQmKQTyFSQ3YUmB5RRnba10w1?usp=sharing)
-
-2. Download the "stc_info" version of the datasets from [here.](https://drive.google.com/drive/folders/1gf8uaCBSZjK-R15x6LkGKFSQ4pWI6uUL?usp=sharing)
-   
-3. For the "esm_embeddings" version of the dataset, it needs to be generated by running `tools/esm_emb_gen.py`.
-
-## 2. Download our model checkpoints to quickly reproduce our results
-Download our model checkpoints from [here.](https://drive.google.com/drive/folders/1wNuoFrFZd3q3AlGyV-s2WpaVMs06N4L1?usp=sharing)
-
-## 3. Generate esm-1b embeddings using our scripts.
-It is recommended to refer to the project structure we provide at end of this README to organize all versions of datasets.
-
-Here is an example for generating esm-1b embeddings for the `ori_datasets` version of AMPlify dataset.
+## Usage within the pipeline
 
 ```bash
-python tools/esm_emb_gen.py --dataset_dir ./datasets/ori_datasets/AMPlify --fname AMPlify.h5
-```
-After running this command, an `AMPlify.h5` file will be generated in the `datasets/esm_embeddings/all` directory.
+# Classification
+sh inference.sh input.fasta output.tsv classification
 
-**Tips:** Since our proposed balanced cls(classification) datasets is a subset of imbalanced cls datasets, if you generate embeddings for `ori_datasets/cls_benchmark_imbalanced/` using this script,the generated `cls_benchmark.h5` can be used for experiments of both **balanced cls datasets and imbalanced cls datasets**. 
+# Regression (E. coli)
+sh inference.sh input.fasta output.tsv regression_ecoli
 
-## 4. Run SenseXAMP
-In this project, the model, datasets, and hyperparameters are all setted in `config.py`. Therefore, before running `run.py`, please ensure that the corresponding `config.py` is correctly configured.
-
-### 4.1 Some introduction about configs we provided
-We have provided configs for the main experiments in the paper, which can be referenced.
-The configs we provide are named according to the following rules:
-`DATASET_ MODEL.py`
-
-The following is an explanation of the specific words that appear in the name of our provided configs:
-
-**About datasets:**
-
-- **ecoli:** Our proposed E.coli regression dataset.
-- **saureus:** Our proposed S.aureus regression dataset.
-- **benchmark_balanced:** Our balanced classification dataset.
-- **benchmark_imbalanced:** Our imbalanced classification dataset.
-- **AMPlify:** The AMPlify dataset.
-- **AmPEP:** The DeepAmpep-30 dataset.
-
-**About models:**
-
-- **fcn:** The model-PD branch of SenseXAMP, utilizing structured data exclusively. Refer to the paper for detailed information.
-- **onlyslfattn:** The model-EB branch of SenseXAMP, exclusively using embeddings from esm-1b. Detailed information is available in the paper.
-- **SenseXAMP:** The comprehensive SenseXAMP model.
-
-
-### 4.2 Train SenseXAMP
-For example, train SenseXAMP on our proposed balanced classification datasets.
-
-```python
-CUDA_VISIBLE_DEVICES=0 python -m torch.distributed.launch --nproc_per_node 1 run.py \
---config ./configs/cls_task/benchmark_balanced_SenseXAMP.py --mode train
+# Regression (S. aureus)
+sh inference.sh input.fasta output.tsv regression_saureus
 ```
 
-### 4.3 Evaluate with SenseXAMP on the test set.
-For example, evaluate with SenseXAMP on the test set of our proposed balanced classification datasets.
-(Make sure you have modified `ckpt_path` to checkpoint in the config file.)
-```python
-CUDA_VISIBLE_DEVICES=0 python -m torch.distributed.launch --nproc_per_node 1 run.py \
---config ./configs/cls_task/benchmark_balanced_SenseXAMP.py --mode test
-```
+The pipeline handles variant selection automatically based on the task configuration.
 
+## Notes
 
-## Project structure
-The core project framework of SenseXAMP is outlined below.  It is recommended to refer to this project structure when organizing all files.
-```bash
-SenseXAMP/
-├── Ampmm_base/  : Core implementaion of trainer, including models, loss, dataloader, etc.
-│   ├── data/
-│   ├── models/
-│   ├── runner/
-│   └── utils/
-├── configs/     :  This folder contains various configs for different experiments, you can also write your own configs.
-│   ├── cls_task/
-│   │   ├── benchmark_imblanced_SenseXAMP.py
-│   │   ├── benchmark_blanced_SenseXAMP.py
-│   │   ├── ...
-│   │   └── Your_own_config.py
-│   └── reg_task/
-│   │   ├── ecoli_SenseXAMP.py
-│   │   ├── saureus_SenseXAMP.py
-│   │   ├── ...
-│   │   └── Your_own_config.py
-├── datasets/     :  This folder contains different version of datasets
-│   ├── ori_datasets/ : 'ori_datasets' version
-│   │   ├── cls_benchmark_imbalanced/
-│   │   ├── cls_benchmark_balanced/
-│   │   ├── ...
-│   │   └── AMPlify/
-│   ├── stc_datasets/   : 'stc_datasets' version, same structure as 'ori_datasets'
-│   ├── esm_embeddings/ : 'esm_embeddings' version
-│   ├── stc_info/       : 'stc_info' version
-├── experiments/ :  This folder contains experiments results. (including model checkpoints auto saved)
-├── tools/       :  This folder contains useful scripts such as  generation of different version of datasets.
-├── utils/       :  This folder contains necessary codes for the implementation of Ampmm_base
-├── requirements.txt
-└── run.py 
+- Cannot handle sequences shorter than 6 amino acids.
+- ESM-1b embedding generation is the main bottleneck for large datasets.
+- The classifier uses the balanced model by default.
+- Regression output is MIC in micromolar.
+
+## License
+
+Same as the original SenseXAMP repository.
