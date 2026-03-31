@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
+export HDF5_USE_FILE_LOCKING=FALSE
+
 
 INPUT_FASTA="$1"
 OUTPUT_TSV="$2"
