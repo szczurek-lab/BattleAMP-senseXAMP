@@ -1,5 +1,5 @@
 {
-    "data_fpath": "/raid/battleamp_root/battleamp-snakemake/results/inference/sensexamp/slay/predictions.tsv.cls.csv",
-    "embedding_fpath": "datasets/esm_embeddings/all/predictions.tsv.cls.h5",
-    "stc_fpath": "datasets/stc_info/predictions.tsv.cls.h5"
+    "data_fpath": "output.tsv.cls.csv",
+    "embedding_fpath": "datasets/esm_embeddings/all/output.tsv.cls.h5",
+    "stc_fpath": "datasets/stc_info/output.tsv.cls.h5"
 }

@@ -1,0 +1,45 @@
+[project]
+name = "sensexamp"
+version = "0.1.0"
+requires-python = "==3.9.*"
+
+dependencies = [
+    "addict",
+    "biopython",
+    "blessed",
+    "charset-normalizer",
+    "einops",
+    "fair-esm",
+    "filelock",
+    "gdown",
+    "gpustat",
+    "h5py",
+    "huggingface-hub",
+    "joblib",
+    "numpy<2",
+    "pandas",
+    "Pillow",
+    "psutil",
+    "PyYAML",
+    "regex",
+    "requests",
+    "scikit-learn",
+    "scipy",
+    "threadpoolctl",
+    "tokenizers",
+    "torch==2.2.1",
+    "torchaudio==2.2.1",
+    "torchvision==0.17.1",
+    "tqdm",
+    "transformers==4.22.1",
+    "urllib3",
+    "wcwidth",
+    "xgboost",
+    "yapf",
+]
+
+[tool.uv]
+package = false
+
+[[tool.uv.index]]
+url = "https://download.pytorch.org/whl/cu118"
