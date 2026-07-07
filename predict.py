@@ -6,7 +6,6 @@ from tools.esm_emb_gen import generate_embeddings
 from tools.generate_stc_csv import generate_stc_csv
 from tools.stc_gen import generate_stc
 
-from model_inference import run_inference
 from model_inference import run_model
 
 import pandas as pd

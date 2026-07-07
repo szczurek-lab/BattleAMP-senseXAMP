@@ -54,6 +54,8 @@ def temporary_custom_json(
         else:
             custom_file.unlink(missing_ok=True)
 
+
+# TODO: Delete this function later, use run_model instead
 def run_inference(
     config_path: str,
     task: str,
