@@ -118,15 +118,7 @@ def predict(
             fasta_file,
         )
 
-        # Model inference will be added here
         #
-        # Step 7:
-        # convert_inputs()
-        # generate_embeddings()
-        # generate_stc_csv()
-        # generate_stc()
-        # run models
-
         # 1. Convert FASTA -> CSV
         #
 
