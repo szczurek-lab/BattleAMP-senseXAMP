@@ -1,0 +1,338 @@
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from typing import Iterable, Union
+from tools.convert_inputs import convert_inputs
+from tools.esm_emb_gen import generate_embeddings
+from tools.generate_stc_csv import generate_stc_csv
+from tools.stc_gen import generate_stc
+
+from model_inference import run_inference
+from model_inference import run_model
+
+import pandas as pd
+
+
+STANDARD_AA = set("ACDEFGHIKLMNPQRSTVWY")
+
+
+def _write_fasta(
+    sequences: Iterable[str],
+    path: Union[str, Path],
+) -> None:
+    """
+    Write sequences to FASTA file.
+    """
+
+    path = Path(path)
+
+    with path.open("w") as f:
+        for i, seq in enumerate(sequences):
+            f.write(f">seq_{i}\n")
+            f.write(f"{seq}\n")
+
+
+def _filter_sequences(
+    sequences: list[str],
+):
+    """
+    Keep only valid SenseXAMP sequences.
+
+    Valid:
+    - length 6-25
+    - standard amino acids only
+    """
+
+    kept = []
+    skipped = []
+
+    for seq in sequences:
+
+        seq = seq.upper()
+
+        if len(seq) < 6 or len(seq) > 25:
+            skipped.append(seq)
+            continue
+
+        if not all(
+            aa in STANDARD_AA
+            for aa in seq
+        ):
+            skipped.append(seq)
+            continue
+
+        kept.append(seq)
+
+    return kept, skipped
+
+
+
+def predict(
+    sequences: list[str],
+) -> pd.DataFrame:
+    """
+    Predict AMP activity and MIC values.
+
+    Parameters
+    ----------
+    sequences:
+        List of peptide sequences.
+
+    Returns
+    -------
+    pandas.DataFrame
+    """
+
+    sequences = list(sequences)
+
+    valid_sequences, skipped = _filter_sequences(
+        sequences
+    )
+
+    if skipped:
+        print(
+            f"Skipped {len(skipped)} invalid sequences"
+        )
+
+    if not valid_sequences:
+        return pd.DataFrame(
+            columns=[
+                "sequence",
+                "Prediction",
+                "Probability_score",
+                "MIC_ecoli",
+                "MIC_unit_ecoli",
+                "MIC_saureus",
+                "MIC_unit_saureus",
+            ]
+        )
+
+
+    with TemporaryDirectory(prefix="sensexamp_") as tmp:
+
+        tmp = Path(tmp)
+
+        fasta_file = tmp / "input.fasta"
+
+        _write_fasta(
+            valid_sequences,
+            fasta_file,
+        )
+
+        # Model inference will be added here
+        #
+        # Step 7:
+        # convert_inputs()
+        # generate_embeddings()
+        # generate_stc_csv()
+        # generate_stc()
+        # run models
+
+        # 1. Convert FASTA -> CSV
+        #
+
+        cls_csv = tmp / "input.cls.csv"
+        reg_csv = tmp / "input.reg.csv"
+
+        convert_inputs(
+            fasta_file=fasta_file,
+            csv_file=cls_csv,
+            task="cls",
+        )
+
+        convert_inputs(
+            fasta_file=fasta_file,
+            csv_file=reg_csv,
+            task="reg",
+        )
+
+
+        #
+        # 2. Generate ESM embeddings
+        #
+
+        embedding_dir = tmp / "embeddings"
+
+        embedding_file = generate_embeddings(
+            dataset_path=cls_csv,
+            output_dir=embedding_dir,
+        )
+
+
+        #
+        # 3. Generate structural CSVs
+        #
+
+        stc_dataset_dir = tmp / "stc_datasets"
+
+        cls_stc_csv = (
+            stc_dataset_dir /
+            "input.cls.csv"
+        )
+
+        reg_stc_csv = (
+            stc_dataset_dir /
+            "input.reg.csv"
+        )
+
+        generate_stc_csv(
+            input_path=cls_csv,
+            output_path=cls_stc_csv,
+            task="cls",
+        )
+
+        generate_stc_csv(
+            input_path=reg_csv,
+            output_path=reg_stc_csv,
+            task="reg",
+        )
+
+
+        #
+        # 4. Generate structural HDF5
+        #
+
+        stc_info_dir = tmp / "stc_info"
+
+        cls_stc_h5 = generate_stc(
+            dataset_dir=stc_dataset_dir,
+            datafile="input.cls.csv",
+            output_dir=stc_info_dir,
+            fname="input.cls.h5",
+            task="cls",
+        )
+
+        reg_stc_h5 = generate_stc(
+            dataset_dir=stc_dataset_dir,
+            datafile="input.reg.csv",
+            output_dir=stc_info_dir,
+            fname="input.reg.h5",
+            task="reg",
+        )
+
+
+        print("Preprocessing complete")
+        print("CSV exists:", cls_csv.exists())
+        print("Embedding exists:", embedding_file.exists())
+        print("CLS STC exists:", cls_stc_h5.exists())
+        print("REG STC exists:", reg_stc_h5.exists())
+
+        #
+        # 5. Run classifier
+        #
+
+        cls_output = tmp / "classifier.tsv"
+
+        cls_result = run_model(
+            config_path="configs/cls_task/battleamp_SenseXAMP.py",
+            task="cls",
+            output_path=cls_output,
+            datafile=cls_csv,
+            embedding_fpath=embedding_file,
+            stc_fpath=cls_stc_h5,
+        )
+
+
+        #
+        # 6. Run E.coli regression
+        #
+
+        ecoli_output = tmp / "ecoli.tsv"
+
+        ecoli_result = run_model(
+            config_path="configs/reg_task/ecoli_battleamp.py",
+            task="reg",
+            output_path=ecoli_output,
+            datafile=reg_csv,
+            embedding_fpath=embedding_file,
+            stc_fpath=reg_stc_h5,
+        )
+
+
+        #
+        # 7. Run S.aureus regression
+        #
+
+        saureus_output = tmp / "saureus.tsv"
+
+        saureus_result = run_model(
+            config_path="configs/reg_task/saureus_battleamp.py",
+            task="reg",
+            output_path=saureus_output,
+            datafile=reg_csv,
+            embedding_fpath=embedding_file,
+            stc_fpath=reg_stc_h5,
+        )
+
+        final = pd.DataFrame({
+            "sequence": valid_sequences
+        })
+
+
+        #
+        # classifier
+        #
+
+        final = final.merge(
+            cls_result.rename(
+                columns={
+                    "Sequence": "sequence"
+                }
+            )[
+                [
+                    "sequence",
+                    "Prediction",
+                    "Probability_score"
+                ]
+            ],
+            on="sequence",
+            how="left",
+        )
+
+
+        #
+        # ecoli MIC
+        #
+
+        final = final.merge(
+            ecoli_result.rename(
+                columns={
+                    "Sequence": "sequence",
+                    "MIC": "MIC_ecoli",
+                    "MIC_unit": "MIC_unit_ecoli",
+                }
+            )[
+                [
+                    "sequence",
+                    "MIC_ecoli",
+                    "MIC_unit_ecoli",
+                ]
+            ],
+            on="sequence",
+            how="left",
+        )
+
+
+        #
+        # saureus MIC
+        #
+
+        final = final.merge(
+            saureus_result.rename(
+                columns={
+                    "Sequence": "sequence",
+                    "MIC": "MIC_saureus",
+                    "MIC_unit": "MIC_unit_saureus",
+                }
+            )[
+                [
+                    "sequence",
+                    "MIC_saureus",
+                    "MIC_unit_saureus",
+                ]
+            ],
+            on="sequence",
+            how="left",
+        )
+
+
+        return final

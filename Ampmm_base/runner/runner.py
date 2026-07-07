@@ -38,7 +38,10 @@ class Runner(BaseRunner):
         if local_rank == 0:
             self.logger.info("Successfully create dataloaders")
         self.model = build_model(cfg)
-        self.model.to(local_rank)
+        if local_rank >= 0:
+            self.model.to(local_rank)
+        else:
+            self.model.to("cpu")
         if local_rank == 0:
             self.logger.info("Successfully create model: {}".format(self.model.__class__.__name__))
         self.get_batch_processor()
@@ -254,7 +257,7 @@ class Runner(BaseRunner):
                              "please choose one from (cls, reg)")
 
         self.register_test_hooks()
-        if self.local_rank == 0:
+        if self.local_rank in [0, -1]:
             self.logger.info("Start running,workdir:{}".format(self.cfg.work_dir))
         self.model.eval()
         self.cur_dataloader = self.test_dataloader

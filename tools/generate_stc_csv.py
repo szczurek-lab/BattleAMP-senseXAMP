@@ -1,40 +1,107 @@
-import os
+from pathlib import Path
+from typing import Literal, Union
 import argparse
+
 import pandas as pd
-import sys
+
 from structure_data_generate.cal_pep_des import cal_pep_fromlist
-from typing import Literal
 
 
-def main(inpath, outpath, task: Literal["cls", "reg"] = None):
-    # generate structured data
-    out_dir = os.path.dirname(outpath)
-    os.makedirs(out_dir, exist_ok=True)
+def generate_stc_csv(
+    input_path: Union[str, Path],
+    output_path: Union[str, Path],
+    task: Literal["cls", "reg"] = "cls",
+) -> None:
+    """
+    Generate structural feature CSV required by SenseXAMP.
 
-    data = pd.read_csv(inpath, encoding="utf-8")
-    sequence = data['Sequence']
-    peptides_list = sequence.values.copy().tolist()
-    labels = data['Labels']
+    Parameters
+    ----------
+    input_path:
+        CSV file containing the Sequence column.
+
+    output_path:
+        Destination structural CSV.
+
+    task:
+        Inference task:
+        - cls: classification
+        - reg: regression
+    """
+
+    input_path = Path(input_path)
+    output_path = Path(output_path)
+
+    output_path.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    data = pd.read_csv(
+        input_path,
+        encoding="utf-8",
+    )
+
+    sequences = data["Sequence"].tolist()
+    labels = data["Labels"]
 
     if task == "reg":
-        mic = data['MIC']
+
+        mic = data["MIC"]
+
         cal_pep_fromlist(
-            peptides_list, output_path=outpath, labels=labels, mic_results=mic
+            sequences,
+            output_path=str(output_path),
+            labels=labels,
+            mic_results=mic,
         )
+
+    elif task == "cls":
+
+        cal_pep_fromlist(
+            sequences,
+            output_path=str(output_path),
+            labels=labels,
+        )
+
     else:
-        cal_pep_fromlist(peptides_list, output_path=outpath, labels=labels)
+        raise ValueError(
+            "task must be either 'cls' or 'reg'"
+        )
 
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Generate structured peptide data')
-    parser.add_argument('--inputpath', type=str, required=True,)
-    parser.add_argument('--outputpath', type=str, required=True)
+def main():
+
+    parser = argparse.ArgumentParser(
+        description="Generate structured peptide data"
+    )
+
     parser.add_argument(
-        '--task', type=str, required=False, choices=["cls", "reg"], default="cls",
-        help='Benchmark inference task (cls or reg), required only when using '
-             '"inference" mode'
+        "--inputpath",
+        required=True,
+        type=str,
+    )
+
+    parser.add_argument(
+        "--outputpath",
+        required=True,
+        type=str,
+    )
+
+    parser.add_argument(
+        "--task",
+        choices=["cls", "reg"],
+        default="cls",
     )
 
     args = parser.parse_args()
 
-    main(args.inputpath, args.outputpath, args.task)
+    generate_stc_csv(
+        input_path=args.inputpath,
+        output_path=args.outputpath,
+        task=args.task,
+    )
+
+
+if __name__ == "__main__":
+    main()

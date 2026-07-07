@@ -42,7 +42,7 @@ def convert_outputs(input_file: str, output_file: str,
 						 "please choose one from (cls, reg)")
 
 	output_df.to_csv(output_file, sep="\t", index=False)
-	print("Finished converting outputs")
+	# print("Finished converting outputs")
 
 
 if __name__ == "__main__":
