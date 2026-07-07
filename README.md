@@ -44,22 +44,13 @@ preserved as-is.
 ## Installation
 
 ```bash
-conda create -n sensexamp python=3.8
-conda activate sensexamp
-sh setup.sh
+TODO setting up enviroment with uv
 ```
 
 ## Usage within the pipeline
 
 ```bash
-# Classification
-sh inference.sh input.fasta output.tsv classification
-
-# Regression (E. coli)
-sh inference.sh input.fasta output.tsv regression_ecoli
-
-# Regression (S. aureus)
-sh inference.sh input.fasta output.tsv regression_saureus
+TODO show usage with SEQME https://github.com/szczurek-lab/seqme-thirdparty
 ```
 
 The pipeline handles variant selection automatically based on the task configuration.
