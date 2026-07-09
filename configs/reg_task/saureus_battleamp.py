@@ -1,13 +1,13 @@
 import os
 import json
 
-with open("configs/reg_task/custom.json") as fp:
+with open(os.path.join(os.environ["SENSEXAMP_ROOT"], "configs/reg_task/custom.json")) as fp:
     json_data = json.load(fp)
 # Task of the model
 # Including 'amp_cls', 'amp_multilabel_cls', 'amp_ranking', and 'amp_regression',default 'amp_cls'
 benchmark_name = 'amp_reg'
 # dataset_name = 'S.aureus'
-work_dir = 'experiments'
+work_dir = os.path.join(os.environ["SENSEXAMP_ROOT"], "experiments")
 # Training hyper-params settings
 epochs = 120
 lr = 1e-4
@@ -66,4 +66,4 @@ data = dict(
 )
 # Resume & Checkpoint setting
 Resume = None # Resume from which ckpt to train
-ckpt_path = "weights/amp_reg/sensexamp_reg_saureus.ckpt" # Checkpoint for test
+ckpt_path = os.path.join(os.environ["SENSEXAMP_ROOT"], "weights/amp_reg/sensexamp_reg_saureus.ckpt") # Checkpoint for test

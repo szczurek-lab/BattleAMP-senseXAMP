@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 import time
 
 import pandas as pd
@@ -9,6 +10,11 @@ import json
 
 from utils import Config, Logger
 from Ampmm_base.runner import Runner
+
+# The SenseXAMP configs are copied into a temp dir before import (mmcv-style
+# Config), so they cannot locate the repo via __file__. Expose the repo root
+# through an env var they can read instead.
+os.environ.setdefault("SENSEXAMP_ROOT", str(Path(__file__).resolve().parent))
 
 @contextmanager
 def temporary_custom_json(

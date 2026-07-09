@@ -13,6 +13,8 @@ import pandas as pd
 
 STANDARD_AA = set("ACDEFGHIKLMNPQRSTVWY")
 
+_CONFIGS_DIR = Path(__file__).resolve().parent / "configs"
+
 
 def _write_fasta(
     sequences: Iterable[str],
@@ -214,7 +216,7 @@ def predict(
         cls_output = tmp / "classifier.tsv"
 
         cls_result = run_model(
-            config_path="configs/cls_task/battleamp_SenseXAMP.py",
+            config_path=str(_CONFIGS_DIR / "cls_task" / "battleamp_SenseXAMP.py"),
             task="cls",
             output_path=cls_output,
             datafile=cls_csv,
@@ -230,7 +232,7 @@ def predict(
         ecoli_output = tmp / "ecoli.tsv"
 
         ecoli_result = run_model(
-            config_path="configs/reg_task/ecoli_battleamp.py",
+            config_path=str(_CONFIGS_DIR / "reg_task" / "ecoli_battleamp.py"),
             task="reg",
             output_path=ecoli_output,
             datafile=reg_csv,
@@ -246,7 +248,7 @@ def predict(
         saureus_output = tmp / "saureus.tsv"
 
         saureus_result = run_model(
-            config_path="configs/reg_task/saureus_battleamp.py",
+            config_path=str(_CONFIGS_DIR / "reg_task" / "saureus_battleamp.py"),
             task="reg",
             output_path=saureus_output,
             datafile=reg_csv,
