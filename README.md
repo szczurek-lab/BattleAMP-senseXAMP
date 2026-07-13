@@ -62,7 +62,7 @@ import seqme as sm
 model = sm.models.ThirdPartyModel(
     entry_point="predict:predict",
     path="./plugins/thirdparty/sensexamp",
-    url="https://github.com/Bruno-PSZ/AMP_Benchmark_senseXAMP",
+    url="https://github.com/szczurek-lab/BattleAMP-senseXAMP",
 )
 
 df = model(sequences=["KLLKLLKKLL", "GIGKFLHSAK"])
