@@ -43,7 +43,7 @@ def _filter_sequences(
     Keep only valid SenseXAMP sequences.
 
     Valid:
-    - length 6-25
+    - length 6-50
     - standard amino acids only
     """
 
@@ -54,7 +54,10 @@ def _filter_sequences(
 
         seq = seq.upper()
 
-        if len(seq) < 6 or len(seq) > 25:
+        # The upper bound is a resource guard, not a model limit: the original SenseXAMP
+        # imposes no length cap (ESM-1b handles up to 1022 tokens and the structural
+        # descriptors are fixed-dimension). Raised 25 -> 50 to cover longer peptides.
+        if len(seq) < 6 or len(seq) > 50:
             skipped.append(seq)
             continue
 
@@ -339,7 +342,7 @@ def _predict_column(sequences: list[str], column: str) -> np.ndarray:
     """Run predict() and return `column` as a 1-D array aligned to `sequences`.
 
     predict()'s output has fewer rows and a different order than the input: sequences
-    that fail validation (length 6-25, standard amino acids) are dropped, and a valid
+    that fail validation (length 6-50, standard amino acids) are dropped, and a valid
     sequence can also be absent if the pipeline produces no row for it. seqme metrics
     expect one score per input sequence in the original order, so we re-align by
     (upper-cased) sequence and fill NaN for any input with no corresponding output row.

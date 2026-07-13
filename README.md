@@ -89,7 +89,8 @@ checkpoints — or pre-provision the clone and pass `path=<dir>` with `url=None`
 
 ## Notes
 
-- Cannot handle sequences shorter than 6 amino acids.
+- Handles sequences of 6-50 amino acids; others are reported as `NaN`. (The 50-aa cap is
+  a resource guard, not a model limit — the original SenseXAMP imposes no length cap.)
 - ESM-1b embedding generation is the main bottleneck for large datasets.
 - The classifier uses the balanced model by default.
 - Regression output is MIC in micromolar.
