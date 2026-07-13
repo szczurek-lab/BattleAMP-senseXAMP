@@ -82,10 +82,10 @@ order (`NaN` for sequences dropped by validation):
 | Entry point | Returns | Objective |
 |---|---|---|
 | `predict:predict_amp` | AMP classification probability | maximize |
-| `predict:predict_mic_ecoli` | E. coli MIC, **log10(uM)** | minimize |
-| `predict:predict_mic_ecoli_uM` | E. coli MIC in uM (`10**log10`) | minimize |
-| `predict:predict_mic_saureus` | S. aureus MIC, **log10(uM)** | minimize |
-| `predict:predict_mic_saureus_uM` | S. aureus MIC in uM (`10**log10`) | minimize |
+| `predict:predict_ecoli` | E. coli MIC in uM | minimize |
+| `predict:predict_ecoli_log10` | E. coli MIC, log10(uM) | minimize |
+| `predict:predict_saureus` | S. aureus MIC in uM | minimize |
+| `predict:predict_saureus_log10` | S. aureus MIC, log10(uM) | minimize |
 
 **Weights are not committed** (too large; `.gitignore`d), so the auto-clone form fetches
 only code. After cloning, run `./setup.sh` in the plugin directory to download the
