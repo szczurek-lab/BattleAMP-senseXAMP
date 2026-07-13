@@ -11,10 +11,29 @@ import json
 from utils import Config, Logger
 from Ampmm_base.runner import Runner
 
-# The SenseXAMP configs are copied into a temp dir before import (mmcv-style
-# Config), so they cannot locate the repo via __file__. Expose the repo root
-# through an env var they can read instead.
-os.environ.setdefault("SENSEXAMP_ROOT", str(Path(__file__).resolve().parent))
+# Resolve the *source* repo root (where weights/ and configs/ live) and expose it as
+# an env var. Two reasons __file__ is unreliable here:
+#   1. The mmcv-style Config copies each config into a temp dir before importing it,
+#      so a config's own __file__ points at the temp copy.
+#   2. uv installs the loose top-level modules non-editable, so this module's __file__
+#      points into .venv/site-packages, not the source tree where weights/ lives.
+# Under `uv run --project X` (how seqme's ThirdPartyModel invokes us), uv sets
+# VIRTUAL_ENV=X/.venv, whose parent is the source root. Fall back to __file__ for
+# editable/direct-source runs.
+def _repo_root() -> Path:
+    venv = os.environ.get("VIRTUAL_ENV")
+    if venv:
+        root = Path(venv).resolve().parent
+        # Only trust VIRTUAL_ENV when it really is <repo>/.venv (guards against an
+        # unrelated activated venv); otherwise fall back to this module's location.
+        if (root / "pyproject.toml").is_file():
+            return root
+    return Path(__file__).resolve().parent
+
+
+# Overwrite (not setdefault) so a stale SENSEXAMP_ROOT inherited from the environment
+# cannot silently point us at the wrong checkout.
+os.environ["SENSEXAMP_ROOT"] = str(_repo_root())
 
 @contextmanager
 def temporary_custom_json(
@@ -215,10 +234,12 @@ def run_model(
         )
 
 
+        device = 0 if torch.cuda.is_available() else -1
+
         runner = Runner(
             cfg,
             logger,
-            0,
+            device,
             "inference",
         )
 

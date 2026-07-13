@@ -19,7 +19,7 @@ class AmpClsAnalyseHook(Hook):
     def before_val_epoch(self, runner):
         # Load checkpoint
         ckpt_path = runner.cfg.ckpt_path
-        if ckpt_path is not None and runner.local_rank == 0:
+        if ckpt_path is not None and runner.local_rank in [0, -1]:
             runner.load_checkpoint(ckpt_path)
             runner.logger.info("Start test, load checkpoint from {}".format(ckpt_path))
 
@@ -59,7 +59,7 @@ class AmpMultiLabelClsAnalyseHook(Hook):
     def before_val_epoch(self, runner):
         # Load checkpoint
         ckpt_path = runner.cfg.ckpt_path
-        if ckpt_path is not None and runner.local_rank == 0:
+        if ckpt_path is not None and runner.local_rank in [0, -1]:
             runner.load_checkpoint(ckpt_path)
             runner.logger.info("Start test, load checkpoint from {}".format(ckpt_path))
 
@@ -98,7 +98,7 @@ class AmpRankingAnalyseHook(Hook):
     def before_val_epoch(self, runner):
         # Load checkpoint
         ckpt_path = runner.cfg.ckpt_path
-        if ckpt_path is not None and runner.local_rank == 0:
+        if ckpt_path is not None and runner.local_rank in [0, -1]:
             runner.load_checkpoint(ckpt_path)
             runner.logger.info("Start test, load checkpoint from {}".format(ckpt_path))
         
@@ -135,7 +135,7 @@ class AmpRegAnalyseHook(Hook):
     def before_val_epoch(self, runner):
         # Load checkpoint
         ckpt_path = runner.cfg.ckpt_path
-        if ckpt_path is not None and runner.local_rank == 0:
+        if ckpt_path is not None and runner.local_rank in [0, -1]:
             runner.load_checkpoint(ckpt_path)
             runner.logger.info("Start test, load checkpoint from {}".format(ckpt_path))
 

@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Iterable, Union
@@ -8,12 +9,15 @@ from tools.stc_gen import generate_stc
 
 from model_inference import run_model
 
+import numpy as np
 import pandas as pd
 
 
 STANDARD_AA = set("ACDEFGHIKLMNPQRSTVWY")
 
-_CONFIGS_DIR = Path(__file__).resolve().parent / "configs"
+# importing model_inference (above) sets SENSEXAMP_ROOT to the source repo root;
+# __file__ here points into site-packages (non-editable install), so use the env var.
+_CONFIGS_DIR = Path(os.environ["SENSEXAMP_ROOT"]) / "configs"
 
 
 def _write_fasta(
@@ -276,7 +280,7 @@ def predict(
                     "Prediction",
                     "Probability_score"
                 ]
-            ],
+            ].drop_duplicates("sequence"),
             on="sequence",
             how="left",
         )
@@ -299,7 +303,7 @@ def predict(
                     "MIC_ecoli",
                     "MIC_unit_ecoli",
                 ]
-            ],
+            ].drop_duplicates("sequence"),
             on="sequence",
             how="left",
         )
@@ -322,10 +326,39 @@ def predict(
                     "MIC_saureus",
                     "MIC_unit_saureus",
                 ]
-            ],
+            ].drop_duplicates("sequence"),
             on="sequence",
             how="left",
         )
 
 
         return final
+
+
+def _predict_column(sequences: list[str], column: str) -> np.ndarray:
+    """Run predict() and return `column` as a 1-D array aligned to `sequences`.
+
+    predict()'s output has fewer rows and a different order than the input: sequences
+    that fail validation (length 6-25, standard amino acids) are dropped, and a valid
+    sequence can also be absent if the pipeline produces no row for it. seqme metrics
+    expect one score per input sequence in the original order, so we re-align by
+    (upper-cased) sequence and fill NaN for any input with no corresponding output row.
+    """
+    df = predict(sequences)
+    lookup = dict(zip(df["sequence"], df[column]))
+    return np.array([lookup.get(seq.upper(), np.nan) for seq in sequences], dtype=float)
+
+
+def predict_amp(sequences: list[str]) -> np.ndarray:
+    """AMP classification probability (higher = more likely AMP), one per sequence."""
+    return _predict_column(sequences, "Probability_score")
+
+
+def predict_mic_ecoli(sequences: list[str]) -> np.ndarray:
+    """Predicted E. coli MIC in uM (lower = more active), one per sequence."""
+    return _predict_column(sequences, "MIC_ecoli")
+
+
+def predict_mic_saureus(sequences: list[str]) -> np.ndarray:
+    """Predicted S. aureus MIC in uM (lower = more active), one per sequence."""
+    return _predict_column(sequences, "MIC_saureus")

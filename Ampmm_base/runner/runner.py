@@ -152,7 +152,8 @@ class Runner(BaseRunner):
                 value.requires_grad = False
 
     def load_checkpoint(self, ckpt_path):
-        self.model.load_state_dict(torch.load(ckpt_path))
+        map_location = None if self.local_rank >= 0 else "cpu"
+        self.model.load_state_dict(torch.load(ckpt_path, map_location=map_location))
 
     def save_checkpoint(self):
         self.logger.info('Got better results on validation set, model checkpoint updated')

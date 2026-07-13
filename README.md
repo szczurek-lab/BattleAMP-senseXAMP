@@ -32,28 +32,60 @@ Each variant uses different pretrained weights (checkpoints in `weights/`).
 
 ## Requirements
 
-- Python 3.8
-- conda (for environment creation by the pipeline)
-- NVIDIA GPU
-- Model checkpoints in `weights/` (download from Google Drive, see original README)
-- ESM-1b weights (~2.5 GB, downloaded automatically during setup)
+- [uv](https://docs.astral.sh/uv/) (manages the Python 3.9 environment and lockfile)
+- GPU optional — runs on CUDA if available, otherwise CPU (slower; ESM-1b embedding is the bottleneck)
+- Model checkpoints in `weights/` (downloaded by `setup.sh` from Google Drive; not committed)
+- ESM-1b weights (~2.5 GB, downloaded automatically to the torch hub cache on first run)
 
-The model architecture and pretrained weights are unchanged. The original `Ampmm_base/` package, `run.py`, training configs, and all model code are
-preserved as-is.
+The model architecture and pretrained weights are unchanged. The original `Ampmm_base/`
+package, `run.py`, training configs, and all model code are preserved as-is.
 
 ## Installation
 
 ```bash
-TODO setting up enviroment with uv
+./setup.sh
 ```
 
-## Usage within the pipeline
+This runs `uv sync` (builds the environment from the lockfile) and downloads the model
+checkpoints into `weights/`. To do it manually: run `uv sync`, then fetch the checkpoints
+per [weights/README.md](weights/README.md).
 
-```bash
-TODO show usage with SEQME https://github.com/szczurek-lab/seqme-thirdparty
+## Usage (seqme)
+
+The plugin is called through seqme's
+[`ThirdPartyModel`](https://github.com/szczurek-lab/seqme), which runs the entry point in
+this repo's isolated uv environment:
+
+```python
+import seqme as sm
+
+model = sm.models.ThirdPartyModel(
+    entry_point="predict:predict",
+    path="./plugins/thirdparty/sensexamp",
+    url="https://github.com/Bruno-PSZ/AMP_Benchmark_senseXAMP",
+)
+
+df = model(sequences=["KLLKLLKKLL", "GIGKFLHSAK"])
 ```
 
-The pipeline handles variant selection automatically based on the task configuration.
+`predict()` returns a `pandas.DataFrame` with columns `sequence`, `Prediction`,
+`Probability_score`, `MIC_ecoli`, `MIC_unit_ecoli`, `MIC_saureus`, `MIC_unit_saureus`.
+
+### Per-variant entry points
+
+For seqme's `ID` / `Threshold` metrics, which expect one score per sequence, use the
+variant entry points instead. Each returns a 1-D `numpy.ndarray` aligned to the input
+order (`NaN` for sequences dropped by validation):
+
+| Entry point | Returns | Objective |
+|---|---|---|
+| `predict:predict_amp` | AMP classification probability | maximize |
+| `predict:predict_mic_ecoli` | E. coli MIC (uM) | minimize |
+| `predict:predict_mic_saureus` | S. aureus MIC (uM) | minimize |
+
+**Weights are not committed** (too large; `.gitignore`d), so the auto-clone form fetches
+only code. After cloning, run `./setup.sh` in the plugin directory to download the
+checkpoints — or pre-provision the clone and pass `path=<dir>` with `url=None`.
 
 ## Notes
 

@@ -95,15 +95,16 @@ def base_batch_processor(model, data_batch, local_rank, train_mode):
         model.train()
     else:
         model.eval()
+    device = local_rank if local_rank >= 0 else "cpu"
     batch_tokens = data_batch['emb'] # avg pooling of each token
-    batch_tokens = batch_tokens.to(local_rank)
-    label = data_batch['label'].to(local_rank)
+    batch_tokens = batch_tokens.to(device)
+    label = data_batch['label'].to(device)
     input_data = {'batch_tokens':batch_tokens, 'label':label}
     if 'stc' in data_batch:
-        stc_info = data_batch['stc'].to(local_rank)
+        stc_info = data_batch['stc'].to(device)
         input_data['stc'] = stc_info
     if 'mic' in data_batch:
-        mic = data_batch['mic'].to(local_rank)
+        mic = data_batch['mic'].to(device)
         input_data['mic'] = mic
     outputs = model(input_data)
     if train_mode:

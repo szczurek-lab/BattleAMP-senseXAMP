@@ -11,7 +11,7 @@ class Ensemble_BCELoss(nn.Module):
     def __init__(self, loss_weight:Dict, pos_weight: List[float]):
         super(Ensemble_BCELoss,self).__init__()
         self.loss_weight=loss_weight
-        self.pos_weight=torch.tensor(pos_weight).cuda()
+        self.pos_weight=torch.tensor(pos_weight).cuda() if torch.cuda.is_available() else torch.tensor(pos_weight)
 
     def forward(self, pred_results, labels):
         losses = {}
