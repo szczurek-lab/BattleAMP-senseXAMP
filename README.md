@@ -70,6 +70,8 @@ df = model(sequences=["KLLKLLKKLL", "GIGKFLHSAK"])
 
 `predict()` returns a `pandas.DataFrame` with columns `sequence`, `Prediction`,
 `Probability_score`, `MIC_ecoli`, `MIC_unit_ecoli`, `MIC_saureus`, `MIC_unit_saureus`.
+**Note:** the `MIC_ecoli` / `MIC_saureus` values are **log10(MIC / uM)** — the regression
+heads predict MIC on a log10 scale and no inverse transform is applied.
 
 ### Per-variant entry points
 
@@ -80,8 +82,10 @@ order (`NaN` for sequences dropped by validation):
 | Entry point | Returns | Objective |
 |---|---|---|
 | `predict:predict_amp` | AMP classification probability | maximize |
-| `predict:predict_mic_ecoli` | E. coli MIC (uM) | minimize |
-| `predict:predict_mic_saureus` | S. aureus MIC (uM) | minimize |
+| `predict:predict_mic_ecoli` | E. coli MIC, **log10(uM)** | minimize |
+| `predict:predict_mic_ecoli_uM` | E. coli MIC in uM (`10**log10`) | minimize |
+| `predict:predict_mic_saureus` | S. aureus MIC, **log10(uM)** | minimize |
+| `predict:predict_mic_saureus_uM` | S. aureus MIC in uM (`10**log10`) | minimize |
 
 **Weights are not committed** (too large; `.gitignore`d), so the auto-clone form fetches
 only code. After cloning, run `./setup.sh` in the plugin directory to download the
@@ -93,7 +97,7 @@ checkpoints — or pre-provision the clone and pass `path=<dir>` with `url=None`
   a resource guard, not a model limit — the original SenseXAMP imposes no length cap.)
 - ESM-1b embedding generation is the main bottleneck for large datasets.
 - The classifier uses the balanced model by default.
-- Regression output is MIC in micromolar.
+- Regression output is **log10(MIC / uM)** (the `*_uM` entry points return linear uM).
 
 ## License
 

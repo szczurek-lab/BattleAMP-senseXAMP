@@ -357,11 +357,24 @@ def predict_amp(sequences: list[str]) -> np.ndarray:
     return _predict_column(sequences, "Probability_score")
 
 
+# The regression heads predict MIC on a log10 scale (the model's MAX_MIC is
+# log10(8196)); no inverse transform is applied. So the raw output is log10(MIC / uM);
+# the *_uM variants exponentiate it back to linear uM.
 def predict_mic_ecoli(sequences: list[str]) -> np.ndarray:
-    """Predicted E. coli MIC in uM (lower = more active), one per sequence."""
+    """log10(E. coli MIC / uM), one per sequence (lower = more active)."""
     return _predict_column(sequences, "MIC_ecoli")
 
 
+def predict_mic_ecoli_uM(sequences: list[str]) -> np.ndarray:
+    """E. coli MIC in uM (10 ** log10), one per sequence (lower = more active)."""
+    return 10.0 ** _predict_column(sequences, "MIC_ecoli")
+
+
 def predict_mic_saureus(sequences: list[str]) -> np.ndarray:
-    """Predicted S. aureus MIC in uM (lower = more active), one per sequence."""
+    """log10(S. aureus MIC / uM), one per sequence (lower = more active)."""
     return _predict_column(sequences, "MIC_saureus")
+
+
+def predict_mic_saureus_uM(sequences: list[str]) -> np.ndarray:
+    """S. aureus MIC in uM (10 ** log10), one per sequence (lower = more active)."""
+    return 10.0 ** _predict_column(sequences, "MIC_saureus")
