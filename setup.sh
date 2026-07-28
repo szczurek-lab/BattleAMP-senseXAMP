@@ -11,11 +11,14 @@ CONDA_LIB=$(python -c "import sys; print(sys.prefix + '/lib')")
 export LD_LIBRARY_PATH="${CONDA_LIB}:${LD_LIBRARY_PATH:-}"
 
 # Install pip dependencies, skip torch and mkl packages (provided by conda).
-grep -v -E '^(torch==|torchaudio|torchvision|mkl-fft|mkl-service)' requirements.txt > /tmp/sensexamp_requirements.txt
-echo "biopython" >> /tmp/sensexamp_requirements.txt
-echo "numpy<2" >> /tmp/sensexamp_requirements.txt
-pip install -r /tmp/sensexamp_requirements.txt
-rm -f /tmp/sensexamp_requirements.txt
+# mktemp, not a fixed /tmp name: on a shared machine the first user to run
+# this owns the file and everyone else gets "Permission denied".
+REQ_TMP=$(mktemp)
+trap 'rm -f "$REQ_TMP"' EXIT
+grep -v -E '^(torch==|torchaudio|torchvision|mkl-fft|mkl-service)' requirements.txt > "$REQ_TMP"
+echo "biopython" >> "$REQ_TMP"
+echo "numpy<2" >> "$REQ_TMP"
+pip install -r "$REQ_TMP"
 
 # Create dataset directories.
 mkdir -p datasets/ori_datasets

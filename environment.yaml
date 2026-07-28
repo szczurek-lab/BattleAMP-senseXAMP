@@ -1,12 +1,19 @@
+# pytorch comes from conda-forge, so the solver picks the CUDA build matching
+# the host driver (__cuda virtual package) and falls back to a CPU build where
+# there is no GPU. No CUDA version is pinned.
+#
+# The previous spec pinned pytorch-cuda=11.8 from the pytorch/nvidia channels,
+# which no longer resolves: pytorch-cuda 11.8 requires cuda-cudart >=11.8,<12.0
+# and the solve fails outright. Resolving from a single channel also removes the
+# need to hand-pin mkl/intel-openmp for ABI compatibility, because conda-forge's
+# *_mkl_* pytorch builds pair with llvm-openmp rather than intel-openmp.
 name: sensexamp
 channels:
-  - pytorch
-  - nvidia
   - conda-forge
-  - defaults
+  - nodefaults
 dependencies:
   - python=3.9
-  - pytorch=2.2.1
-  - pytorch-cuda=11.8
+  - pytorch>=2.2,<3        # 2.7.1 is the newest with py39 builds
   - libstdcxx-ng>=12
+  - importlib_metadata     # torch.distributed.elastic needs it on py39
   - pip
